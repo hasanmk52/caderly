@@ -94,14 +94,13 @@ Open `https://caderly.app`. Flyway creates the schema on first start.
 ## 7. Backups
 
 `deploy/backup/backup.sh` writes a compressed `pg_dump`, checks it can be read back, keeps 14,
-and optionally copies it to S3.
+and optionally copies it to S3. It runs as root and dumps as the `postgres` superuser: the app's
+own role is refused by `pg_dump` because every tenant table forces row-level security, and a
+superuser is exempt from it. No database password is needed.
 
 ```bash
-sudo install -d -m 700 /etc/caderly
-printf 'DB_PASSWORD=<db password>\n' | sudo tee /etc/caderly/backup.env >/dev/null
-sudo chmod 600 /etc/caderly/backup.env
 # 02:30 every night
-echo '30 2 * * * root set -a; . /etc/caderly/backup.env; set +a; /opt/caderly/deploy/backup/backup.sh >> /var/log/caderly-backup.log 2>&1' | sudo tee /etc/cron.d/caderly-backup
+echo '30 2 * * * root /opt/caderly/deploy/backup/backup.sh >> /var/log/caderly-backup.log 2>&1' | sudo tee /etc/cron.d/caderly-backup
 ```
 
 Uploaded files live in `/var/lib/caderly/files` and are not in the dump; back that directory up
@@ -113,13 +112,12 @@ unreadable without it.
 Run this once after the first backup, and again after any change to the backup setup:
 
 ```bash
-set -a; . /etc/caderly/backup.env; set +a
-deploy/backup/restore-drill.sh /var/backups/caderly/<dump file>
+sudo deploy/backup/restore-drill.sh /var/backups/caderly/<dump file>
 ```
 
 It restores into a throwaway database, counts tenants and migrations, then drops it. To restore
 for real on a new server: install Postgres, create the role and database (section 3), run
-`pg_restore --no-owner -d caderly <dump>`, copy `.env` and the files directory, and start the
+`sudo -u postgres pg_restore --no-owner --role=caderly -d caderly < <dump>`, copy `.env` and the files directory, and start the
 stack.
 
 ## 9. Operations
