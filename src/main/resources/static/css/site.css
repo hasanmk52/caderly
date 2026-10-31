@@ -117,7 +117,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .hero-orbit { position: absolute; inset: 1%; border-radius: 50%; border: 1.5px dashed var(--brand-line); animation: cd-spin 90s linear infinite; }
 .hero-disc { position: absolute; inset: 11%; border-radius: 50%; background: var(--brand-fill); }
 .hero-portrait {
-  position: absolute; left: 50%; bottom: 11%; height: 92%; transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: 11%; height: 88%; transform: translateX(-46%) scaleX(.94);
   /* Union of a top-half band (head may rise above the disc) and the disc circle, so the body is
      cut cleanly along the disc's curve. */
   -webkit-mask-image: linear-gradient(#000 0 0), radial-gradient(circle closest-side, #000 99%, transparent 100%);
@@ -130,18 +130,18 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
   position: absolute; background: var(--card); border: 1px solid var(--rule); box-shadow: var(--shadow-float);
   animation: cd-in .6s cubic-bezier(.2, .7, .2, 1) both, cd-float 7s ease-in-out infinite;
 }
-.chip-booking { left: -2%; top: 14%; width: 236px; max-width: 48%; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; animation-delay: .25s, 1s; }
+.chip-booking { left: -9%; top: 5%; width: 220px; max-width: 44%; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; animation-delay: .25s, 1s; }
 .chip-booking .meta { font-size: 12px; color: var(--ink-3); }
 .chip-booking .big { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
 .chip-booking .rule { font-size: 12px; line-height: 1.4; color: var(--ink-2); background: var(--brand-fill); border-radius: 6px; padding: 6px 8px; }
-.chip-approval { right: -3%; top: 34%; max-width: 52%; border-radius: 999px; padding: 6px 16px 6px 6px; display: flex; align-items: center; gap: 10px; animation-delay: .45s, 3.2s; }
+.chip-approval { right: -7%; top: 47%; max-width: 52%; border-radius: 999px; padding: 6px 16px 6px 6px; display: flex; align-items: center; gap: 10px; animation-delay: .45s, 3.2s; }
 .chip-approval img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; }
 .chip-approval .status { font-size: 13px; font-weight: 600; color: var(--verify); display: flex; align-items: center; gap: 4px; }
 .chip-approval .by { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
-.chip-balance { left: 3%; bottom: 16%; max-width: 50%; border-radius: 12px; padding: 12px 16px 12px 12px; display: flex; align-items: center; gap: 12px; animation-delay: .65s, 2.1s; }
+.chip-balance { left: -4%; bottom: 12%; max-width: 50%; border-radius: 12px; padding: 12px 16px 12px 12px; display: flex; align-items: center; gap: 12px; animation-delay: .65s, 2.1s; }
 .chip-balance .title { font-size: 14px; font-weight: 600; display: block; }
 .chip-balance .sub { font-size: 12px; color: var(--ink-3); display: block; }
-.chip-bubble { right: 9%; bottom: 13%; width: 56px; height: 56px; border-radius: 50%; background: var(--brand); border: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px -10px rgba(15, 85, 104, .6); animation-delay: .85s, 4.4s; }
+.chip-bubble { right: 4%; bottom: 8%; width: 56px; height: 56px; border-radius: 50%; background: var(--brand); border: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px -10px rgba(15, 85, 104, .6); animation-delay: .85s, 4.4s; }
 .stack { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 
 @keyframes cd-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -378,7 +378,9 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   .nav-links { display: none; }
   .nav-actions { gap: 12px; }
   .nav-actions .btn { padding: 9px 14px; font-size: 14px; }
-  .chip-booking { width: 200px; }
+  .chip-booking { width: 200px; left: 0; }
+  .chip-approval { right: 0; }
+  .chip-balance { left: 0; }
   .auth-card { padding: 28px 22px 24px; }
   .days { gap: 4px; }
   .day .num { font-size: 15px; }
