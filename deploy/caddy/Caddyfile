@@ -7,6 +7,9 @@
 {$CADERLY_BASE_DOMAIN}, *.{$CADERLY_BASE_DOMAIN} {
 	tls {
 		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+		# The DNS-01 propagation check otherwise uses the host's resolvers, which on some
+		# servers include an IPv6 address that is unreachable and stalls every attempt.
+		resolvers 1.1.1.1 1.0.0.1
 	}
 
 	encode zstd gzip
@@ -23,6 +26,9 @@
 www.{$CADERLY_BASE_DOMAIN} {
 	tls {
 		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+		# The DNS-01 propagation check otherwise uses the host's resolvers, which on some
+		# servers include an IPv6 address that is unreachable and stalls every attempt.
+		resolvers 1.1.1.1 1.0.0.1
 	}
 	redir https://{$CADERLY_BASE_DOMAIN}{uri} permanent
 }
