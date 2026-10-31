@@ -28,7 +28,7 @@ Create a Cloudflare API token from the "Edit zone DNS" template, limited to this
 
 ## 3. Database
 
-Create the role and database, and let the Docker network reach Postgres:
+Create the role and database:
 
 ```bash
 sudo -u postgres psql <<'SQL'
@@ -37,16 +37,11 @@ CREATE DATABASE caderly OWNER caderly;
 SQL
 ```
 
-In `postgresql.conf` set `listen_addresses = '*'` (the default is localhost only, which a
-container cannot reach). `pg_hba.conf` is what limits who may connect, so add exactly one line
-for the compose subnet and nothing broader:
-
-```
-host    caderly    caderly    172.30.0.0/24    scram-sha-256
-```
-
-Then `sudo systemctl restart postgresql`. Make sure the firewall does not expose 5432 publicly
-(section 5). The subnet matches the `edge` network in `docker-compose.yml`.
+Nothing else changes in Postgres. The containers use host networking and connect to
+`localhost:5432`, so the default `listen_addresses = 'localhost'` and the stock `pg_hba.conf`
+rule for `127.0.0.1` are enough, and the database is never reachable from outside the server.
+The role must be able to log in with a password over TCP: the default Debian
+`host all all 127.0.0.1/32 scram-sha-256` (or `md5`) line covers it.
 
 ## 4. Configuration
 
@@ -76,10 +71,16 @@ sudo firewall-cmd --reload
 sudo firewall-cmd --list-all        # 5432 and 8080 must not appear
 ```
 
-The app container publishes no port at all; only Caddy reaches it over the compose network.
-That matters: the app trusts the first `X-Forwarded-For` hop as the client address, and Caddy
-sets that header from the real peer. A directly reachable app port would let a client forge it
-and bypass the Super Admin IP allowlist and login rate limits.
+The app listens on `127.0.0.1:8085` only (`SERVER_ADDRESS` in `docker-compose.yml`), so only
+Caddy on the same machine can reach it. That matters: the app trusts the first `X-Forwarded-For`
+hop as the client address, and Caddy sets that header from the real peer. A directly reachable
+app port would let a client forge it and bypass the Super Admin IP allowlist and login rate
+limits. On a server where `firewalld` does not cover the public interface (an LXC container, for
+example), the provider's own firewall is what must allow 80 and 443; confirm from another
+machine with `nc -z <server ip> 443`.
+
+Logs: `docker compose logs app` / `caddy`, kept by Docker under `/var/lib/docker/containers`
+and rotated at 5 files of 10 MB each per container.
 
 ## 6. Start
 

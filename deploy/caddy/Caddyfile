@@ -14,7 +14,7 @@
 	# The app trusts the first X-Forwarded-For hop as the client address (ClientIpResolver, the
 	# Super Admin IP allowlist and login rate limits all rely on it). Caddy must therefore SET
 	# the header from the real peer address and never pass a client-supplied value through.
-	reverse_proxy app:8080 {
+	reverse_proxy 127.0.0.1:{$APP_PORT} {
 		header_up X-Forwarded-For {remote_host}
 	}
 }

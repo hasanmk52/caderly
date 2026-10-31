@@ -15,7 +15,7 @@ RUN ./mvnw -B -q -DskipTests package \
 FROM gcr.io/distroless/java25-debian13:nonroot@sha256:1faed3fc8dc16d47748e62167a7783d73299a277a4b695b90e8f530ea6a2c36f
 COPY --from=build /app.jar /app/app.jar
 WORKDIR /app
-EXPOSE 8080
+EXPOSE 8085
 # Distroless has no shell, so the JVM is the entrypoint. Container-aware heap sizing keeps the
 # JVM inside the compose memory limit.
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]
