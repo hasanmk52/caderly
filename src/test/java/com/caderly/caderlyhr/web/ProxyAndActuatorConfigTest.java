@@ -10,6 +10,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 /** CLAUDE.md §6 A05: pinned settings that fail silently if the key is misspelled or dropped. MockMvc is on only so
  * this shares the suite's common Spring context instead of starting its own. */
@@ -20,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 class ProxyAndActuatorConfigTest {
 
     @Autowired private Environment environment;
+    @Autowired private MockMvc mockMvc;
 
     @Test
     void forwardHeadersStrategy_isNative_soLinksBehindTheProxyAreHttps() {
@@ -27,7 +31,17 @@ class ProxyAndActuatorConfigTest {
     }
 
     @Test
-    void actuatorExposure_isHealthOnly() {
-        assertThat(environment.getProperty("management.endpoints.web.exposure.include")).isEqualTo("health");
+    void actuatorExposure_isHealthAndPrometheusOnly() {
+        assertThat(environment.getProperty("management.endpoints.web.exposure.include"))
+                .isEqualTo("health,prometheus");
+    }
+
+    @Test
+    void prometheusEndpoint_asAnAnonymousVisitor_isNotServed() throws Exception {
+        // The scrape endpoint is meant for a loopback-only management port in deployment; on the
+        // application port it must stay behind the deny-by-default security chain.
+        int status = mockMvc.perform(get("/actuator/prometheus")).andReturn().getResponse().getStatus();
+
+        assertThat(status).isNotEqualTo(200);
     }
 }

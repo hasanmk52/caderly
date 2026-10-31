@@ -168,10 +168,12 @@ caderly:
 management:
   endpoints:
     web:
-      # Pinned to health only (CLAUDE.md §6 A05) so adding an actuator starter can never expose
-      # env, heapdump or beans by default.
+      # Pinned to health and prometheus (CLAUDE.md §6 A05) so adding an actuator starter can never
+      # expose env, heapdump or beans by default. Neither is permitted on the application port by
+      # the security chain except /actuator/health; deployments move the whole actuator to a
+      # loopback-only management port (docker-compose.yml) so Prometheus scrapes it locally.
       exposure:
-        include: health
+        include: health,prometheus
 
 logging:
   level:

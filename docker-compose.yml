@@ -21,6 +21,10 @@ services:
     environment:
       SERVER_ADDRESS: 127.0.0.1
       SERVER_PORT: ${APP_PORT:-8085}
+      # Actuator (health, Prometheus metrics) on its own loopback-only port, so Caddy never
+      # proxies it: scrape http://127.0.0.1:8086/actuator/prometheus from the host.
+      MANAGEMENT_SERVER_PORT: ${MANAGEMENT_PORT:-8086}
+      MANAGEMENT_SERVER_ADDRESS: 127.0.0.1
       SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/${DB_NAME:-caderly}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-caderly}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
