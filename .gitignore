@@ -42,3 +42,6 @@ uploads
 
 # Subagent-driven-development scratch workspace (ledgers, task briefs, review packages)
 .superpowers/
+
+# Working-state notes: kept on the maintainer machine only, never committed
+/docs/CURRENT_PHASE.md
