@@ -52,6 +52,7 @@
   <!--/* Features: TalentHR's alternating wide/narrow grid. Only what is built (PRD §8 MVP). */-->
   <section id="features" class="wrap section">
     <div class="section-head">
+      <p class="eyebrow" th:text="#{site.home.eyebrow.features}">Features</p>
       <h2 class="title" th:text="#{site.home.features.heading}">Run HR without the guesswork</h2>
       <p th:text="#{site.home.features.lead}">Everything below is built and included in every workspace.</p>
     </div>
@@ -72,7 +73,7 @@
         <p th:text="#{site.home.feature.leave.body}">Your leave types and approvals.</p>
         <div class="vignette" aria-hidden="true">
           <div class="panel" style="width:270px">
-            <div class="row"><img class="avatar" th:src="@{/img/site/employee-woman.webp}" alt="" width="320" height="320" loading="lazy" /><span class="stack"><span class="strong" style="font-size:13px;font-weight:600" th:text="#{site.home.feature.leave.who}">Priya Nair · Vacation</span><span style="font-size:12px;color:#5F6675" th:text="#{site.home.feature.leave.when}">3 working days · 12–14 Aug</span></span></div>
+            <div class="row"><img class="avatar" th:src="@{/img/site/employee-woman.webp}" alt="" width="320" height="320" loading="lazy" /><span class="stack"><span class="panel-title" th:text="#{site.home.feature.leave.who}">Priya Nair · Vacation</span><span class="panel-meta mono" th:text="#{site.home.feature.leave.when}">3 working days · 12–14 Aug</span></span></div>
             <div class="note" th:text="#{site.home.feature.leave.after}">After this: 9 of 30 days left</div>
             <div class="actions"><span class="act go" th:text="#{site.home.feature.leave.approve}">Approve</span><span class="act no" th:text="#{site.home.feature.leave.decline}">Decline</span></div>
           </div>
@@ -98,7 +99,7 @@
         <p th:text="#{site.home.feature.documents.body}">Upload the handbook once.</p>
         <div class="vignette" aria-hidden="true">
           <div class="portrait"><img th:src="@{/img/site/employee-woman.webp}" alt="" width="320" height="320" loading="lazy" /></div>
-          <div class="tag tag-left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg><span style="font-weight:500" th:text="#{site.home.feature.documents.file}">Employee handbook.pdf</span></div>
+          <div class="tag tag-left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg><span class="medium" th:text="#{site.home.feature.documents.file}">Employee handbook.pdf</span></div>
           <div class="tag col tag-right"><span class="strong" th:text="#{site.home.feature.documents.id}">Emirates ID</span><span class="warn" th:text="#{site.home.feature.documents.expiry}">Expires in 30 days (14 Sep)</span></div>
         </div>
       </article>
@@ -108,7 +109,7 @@
         <p th:text="#{site.home.feature.reports.body}">Leave balances, leave taken and headcount.</p>
         <div class="vignette" aria-hidden="true">
           <div class="panel" style="width:360px">
-            <div class="row" style="justify-content:space-between"><span style="font-size:13px;font-weight:600" th:text="#{site.home.feature.reports.chart}">Leave taken by department</span><span style="font-size:12px;font-weight:600;color:#0F5568;border:1px solid #AFCFD7;border-radius:6px;padding:3px 8px" th:text="#{site.home.feature.reports.export}">Export CSV</span></div>
+            <div class="row" style="justify-content:space-between"><span class="panel-title" th:text="#{site.home.feature.reports.chart}">Leave taken by department</span><span class="badge" th:text="#{site.home.feature.reports.export}">Export CSV</span></div>
             <div class="bars"><span style="height:72%"></span><span style="height:46%"></span><span style="height:88%"></span><span style="height:30%"></span><span style="height:58%"></span></div>
             <div class="bar-labels"><span>Eng</span><span>Ops</span><span>Sales</span><span>HR</span><span>Fin</span></div>
           </div>
@@ -120,9 +121,9 @@
         <p th:text="#{site.home.feature.audit.body}">Who changed what, when, and what it was before.</p>
         <div class="vignette" aria-hidden="true">
           <div class="panel" style="width:290px">
-            <div class="row" style="align-items:flex-start"><img class="avatar" style="width:30px;height:30px" th:src="@{/img/site/hr-woman-blazer.webp}" alt="" width="320" height="320" loading="lazy" /><span style="font-size:12px;line-height:1.4"><span th:text="#{site.home.feature.audit.entry1}">Aisha Rahman changed Priya's Vacation balance 28 → 30</span><br /><span class="mono" style="color:#5F6675">14:02 · Tue 11 Aug</span></span></div>
+            <div class="row" style="align-items:flex-start"><img class="avatar" style="width:30px;height:30px" th:src="@{/img/site/hr-woman-blazer.webp}" alt="" width="320" height="320" loading="lazy" /><span class="panel-entry"><span th:text="#{site.home.feature.audit.entry1}">Aisha Rahman changed Priya's Vacation balance 28 → 30</span><br /><span class="panel-meta mono">14:02 · Tue 11 Aug</span></span></div>
             <div class="divider"></div>
-            <div class="row" style="align-items:flex-start"><img class="avatar" style="width:30px;height:30px" th:src="@{/img/site/exec-man-beard.webp}" alt="" width="320" height="320" loading="lazy" /><span style="font-size:12px;line-height:1.4"><span th:text="#{site.home.feature.audit.entry2}">Karim Saleh signed in</span><br /><span class="mono" style="color:#5F6675">09:41 · Tue 11 Aug</span></span></div>
+            <div class="row" style="align-items:flex-start"><img class="avatar" style="width:30px;height:30px" th:src="@{/img/site/exec-man-beard.webp}" alt="" width="320" height="320" loading="lazy" /><span class="panel-entry"><span th:text="#{site.home.feature.audit.entry2}">Karim Saleh signed in</span><br /><span class="panel-meta mono">09:41 · Tue 11 Aug</span></span></div>
           </div>
         </div>
       </article>
@@ -135,6 +136,7 @@
   <section id="arithmetic" class="section section-tint">
     <div class="wrap split">
       <div class="split-copy">
+        <p class="eyebrow" th:text="#{site.home.eyebrow.arithmetic}">The arithmetic</p>
         <h2 class="title" th:text="#{site.home.arithmetic.heading}">Every number comes with its working</h2>
         <p class="muted-lg" th:text="#{site.home.arithmetic.p1}">Most HR tools show a result and hide the rule.</p>
         <a class="btn btn-outline" style="align-self:flex-start;margin-top:6px" href="#setup" th:text="#{site.home.arithmetic.cta}">See how setup works</a>
@@ -169,6 +171,7 @@
 
   <section id="setup" class="wrap section" style="padding-bottom:40px">
     <div class="section-head" style="margin-bottom:0">
+      <p class="eyebrow" th:text="#{site.home.eyebrow.setup}">Setup</p>
       <h2 class="title" th:text="#{site.home.setup.heading}">Running in three steps</h2>
       <p th:text="#{site.home.setup.lead}">No sales call and no setup fee.</p>
     </div>
@@ -184,10 +187,11 @@
       <div class="trust-visual" aria-hidden="true">
         <div class="disc"></div>
         <div class="face"><img th:src="@{/img/site/exec-man-beard.webp}" alt="" width="320" height="320" loading="lazy" /></div>
-        <div class="tag t1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span style="font-weight:500" th:text="#{site.home.security.tag-encrypted}">Encrypted at rest</span></div>
+        <div class="tag t1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span class="medium" th:text="#{site.home.security.tag-encrypted}">Encrypted at rest</span></div>
         <div class="tag col t2"><span class="strong" th:text="#{site.home.security.tag-ended}">Access ended today</span><span class="small" th:text="#{site.home.security.tag-ended-detail}">Signed out on every device.</span></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:16px">
+        <p class="eyebrow" th:text="#{site.home.eyebrow.security}">Security</p>
         <h2 class="title" th:text="#{site.home.security.heading}">Built for the person who signs off on it</h2>
         <p class="muted-lg" th:text="#{site.home.security.lead}">Your finance lead may never open Caderly.</p>
         <ul class="checks">
@@ -203,6 +207,7 @@
   <section id="pricing" class="section section-paper">
     <div class="wrap split" style="align-items:start">
       <div style="display:flex;flex-direction:column;gap:20px">
+        <p class="eyebrow" th:text="#{site.home.eyebrow.pricing}">Pricing</p>
         <h2 class="title" th:text="#{site.home.pricing.heading}">One plan, and it's free</h2>
         <div class="price-card">
           <div class="price"><span class="amount" th:text="#{site.home.pricing.amount}">$0</span><span class="per" th:text="#{site.home.pricing.per}">up to 50 employees, no time limit</span></div>
