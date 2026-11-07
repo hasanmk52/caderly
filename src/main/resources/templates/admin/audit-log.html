@@ -84,7 +84,7 @@
               </thead>
               <tbody>
                 <tr th:each="row : ${rows}">
-                  <td class="text-nowrap font-figure small" th:text="${#temporals.format(row.occurredAt(), 'MMM dd, yyyy HH:mm')}">Sep 15, 2026 09:12</td>
+                  <td class="text-nowrap font-figure small" th:text="${@fmt.dateTime(row.occurredAt())}">Sep 15, 2026 09:12</td>
                   <td>
                     <span class="badge bg-secondary-subtle text-secondary-emphasis" th:text="${row.actorRole()}">ADMIN</span>
                     <span class="text-muted small text-nowrap" th:if="${row.actorUserId() != null}" th:text="${row.actorUserId()}">…</span>
@@ -168,7 +168,7 @@
               </thead>
               <tbody>
                 <tr th:each="row : ${loginRows}">
-                  <td class="text-nowrap font-figure small" th:text="${#temporals.format(row.occurredAt(), 'MMM dd, yyyy HH:mm')}">Sep 15, 2026 09:12</td>
+                  <td class="text-nowrap font-figure small" th:text="${@fmt.dateTime(row.occurredAt())}">Sep 15, 2026 09:12</td>
                   <td th:text="${row.emailAttempted()}">priya@acme.test</td>
                   <td>
                     <span class="badge"

@@ -35,7 +35,7 @@
               <label class="btn btn-outline-secondary btn-sm" th:for="${#ids.prev('leaveTypeId')}">
                 <i th:if="${type.icon != null}" th:class="'bi ' + ${type.icon}" aria-hidden="true"></i>
                 <span th:text="${type.name}">Vacation</span>
-                &middot; <span class="font-figure"><span th:text="${type.remainingAfterPending}">18</span>/<span th:text="${type.granted}">30</span></span>
+                &middot; <span class="font-figure"><span th:text="${@fmt.days(type.remainingAfterPending)}">18</span>/<span th:text="${@fmt.days(type.granted)}">30</span></span>
               </label>
             </div>
           </div>
@@ -127,11 +127,11 @@
   </div>
   <div th:if="${preview != null}" class="alert py-2 mb-0"
        th:classappend="${preview.sufficient} ? 'alert-info' : 'alert-warning'" role="status">
-    <span th:text="#{leave.book.preview.uses-prefix}">This will use</span> <strong th:text="${preview.duration}">1.00</strong>
+    <span th:text="#{leave.book.preview.uses-prefix}">This will use</span> <strong class="font-figure" th:text="${@fmt.days(preview.duration)}">1</strong>
     <span th:text="#{leave.book.preview.working-days-of}">working day(s) of</span>
     <span th:text="${preview.leaveTypeName}">Vacation</span>.
     <span th:if="${preview.sufficient}">
-      <span th:text="${preview.remainingAfter}">17.00</span> <span th:text="#{leave.book.preview.remaining-suffix}">day(s) would remain.</span>
+      <span class="font-figure" th:text="${@fmt.days(preview.remainingAfter)}">17</span> <span th:text="#{leave.book.preview.remaining-suffix}">day(s) would remain.</span>
     </span>
     <span th:unless="${preview.sufficient}" class="fw-semibold" th:text="#{leave.book.preview.insufficient}">Not enough remaining balance for this request.</span>
   </div>

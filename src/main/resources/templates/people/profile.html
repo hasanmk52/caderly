@@ -32,7 +32,7 @@
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <div class="small text-muted" th:text="#{common.field.email}">Email</div>
-              <div th:text="${employee.email}">jane@example.com</div>
+              <div class="caderly-email"><span th:text="${#strings.substringBefore(employee.email, '@')}">jane</span><span th:text="'@' + ${#strings.substringAfter(employee.email, '@')}">@example.com</span></div>
             </li>
             <li class="list-group-item" th:if="${employee.phone}">
               <div class="small text-muted" th:text="#{common.field.phone}">Phone</div>
@@ -206,7 +206,7 @@
                 <div class="card-body">
                   <h3 class="h6 mb-3" th:text="#{profile.tab.job}">Job</h3>
                   <dl class="row mb-0">
-                    <dt class="col-4" th:text="#{common.field.hire-date}">Hire date</dt><dd class="col-8" th:text="${employee.hireDate} ?: '—'">—</dd>
+                    <dt class="col-4" th:text="#{common.field.hire-date}">Hire date</dt><dd class="col-8" th:text="${@fmt.date(employee.hireDate)}">—</dd>
                     <dt class="col-4" th:text="#{common.field.employment-type}">Employment type</dt><dd class="col-8" th:text="${employee.employmentType?.label} ?: '—'">—</dd>
                     <dt class="col-4" th:text="#{common.field.department}">Department</dt>
                     <dd class="col-8" th:text="${employee.department != null ? employee.department.name : '—'}">—</dd>
@@ -242,7 +242,7 @@
                              th:style="${type.color != null} ? 'color:' + ${type.color}" aria-hidden="true"></i>
                           <span class="fw-semibold" th:text="${type.name}">Vacation</span>
                         </div>
-                        <span class="font-figure"><span th:text="${type.remaining}">15</span> / <span th:text="${type.granted}">30</span></span> <span th:text="#{profile.timeoff.remaining-suffix}">remaining</span>
+                        <span class="font-figure"><span th:text="${@fmt.days(type.remaining)}">15</span> / <span th:text="${@fmt.days(type.granted)}">30</span></span> <span th:text="#{profile.timeoff.remaining-suffix}">remaining</span>
                       </div>
                     </div>
                   </div>
@@ -274,8 +274,8 @@
                                th:style="${req.leaveType.color != null} ? 'color:' + ${req.leaveType.color}" aria-hidden="true"></i>
                             <span th:text="${req.leaveType.name}">Vacation</span>
                           </td>
-                          <td><span th:text="${req.startDate}">2026-08-17</span> - <span th:text="${req.endDate}">2026-08-21</span></td>
-                          <td class="font-figure" th:text="${req.durationDays}">5.00</td>
+                          <td><span th:text="${@fmt.range(req.startDate, req.endDate)}">Mon 17 – Fri 21 Aug 2026</span></td>
+                          <td class="font-figure" th:text="${@fmt.days(req.durationDays)}">5</td>
                           <td>
                             <span class="badge" th:text="${req.status.label}"
                                   th:classappend="${req.status.name() == 'APPROVED'} ? 'bg-success-subtle text-success-emphasis' : (${req.status.name() == 'PENDING'} ? 'bg-warning-subtle text-warning-emphasis' : (${req.status.name() == 'REJECTED'} ? 'bg-danger-subtle text-danger-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'))">
@@ -362,7 +362,7 @@
                       <tbody>
                         <tr th:each="doc : ${employeeDocuments}">
                           <td th:text="${doc.name()}">Passport.pdf</td>
-                          <td th:text="${#temporals.format(doc.uploadedAt(), 'yyyy-MM-dd')}">2026-08-26</td>
+                          <td th:text="${@fmt.dateOf(doc.uploadedAt())}">Wed 26 Aug 2026</td>
                           <td th:if="${canChooseDocumentVisibility}" th:text="${doc.visibility().label()}">Employee &amp; Admin</td>
                           <td class="text-end">
                             <a class="btn btn-outline-secondary btn-sm" th:aria-label="#{profile.documents.aria.download}"

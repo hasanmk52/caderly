@@ -61,7 +61,7 @@
             <tr th:each="file : ${files}">
               <td th:text="${file.name()}">Employee Handbook.pdf</td>
               <td th:text="${#numbers.formatDecimal(file.sizeBytes() / 1024.0, 0, 1)} + ' KB'">128.0 KB</td>
-              <td th:text="${#temporals.format(file.uploadedAt(), 'yyyy-MM-dd')}">2026-08-26</td>
+              <td th:text="${@fmt.dateOf(file.uploadedAt())}">Wed 26 Aug 2026</td>
               <td class="text-end">
                 <a class="btn btn-outline-secondary btn-sm" th:aria-label="#{files.aria.download}"
                    th:href="@{/files/{id}/download(id=${file.id})}">

@@ -48,7 +48,7 @@
               </span>
             </td>
             <td th:text="${#strings.listJoin(user.roles, ', ')}">EMPLOYEE</td>
-            <td class="text-muted font-figure small" th:text="${user.lastLoginAt} ?: '—'">—</td>
+            <td class="text-muted font-figure small" th:text="${@fmt.recent(user.lastLoginAt)}">—</td>
           </tr>
         </tbody>
       </table>

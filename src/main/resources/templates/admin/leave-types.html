@@ -40,7 +40,7 @@
                 <i th:if="${leaveType.icon() != null}" th:class="'bi ' + ${leaveType.icon()}" aria-hidden="true"></i>
                 <span th:text="${leaveType.name()}">Annual</span>
               </td>
-              <td th:text="${leaveType.defaultAnnualAllowance()}">30</td>
+              <td th:text="${@fmt.days(leaveType.defaultAnnualAllowance())}">30</td>
               <td th:text="${leaveType.paid()} ? #{admin.leave-types.paid} : #{admin.leave-types.unpaid}">Paid</td>
               <td th:text="${leaveType.allowsHalfDay()} ? #{admin.leave-types.allowed} : #{admin.leave-types.not-allowed}">Allowed</td>
               <td>
