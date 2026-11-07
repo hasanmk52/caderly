@@ -6,6 +6,10 @@
 # Keeps 30 local dumps (PRD §19.8); set S3_URI to also copy each one off-site.
 set -euo pipefail
 
+# cron runs with a minimal PATH that lacks /usr/sbin, where runuser lives; without this the job
+# fails every night with "command not found".
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/caderly}"
 DB_NAME="${DB_NAME:-caderly}"
 KEEP="${KEEP:-30}"
@@ -16,7 +20,17 @@ file="$BACKUP_DIR/${DB_NAME}-$(date +%Y%m%d-%H%M%S).dump"
 
 # Custom format: compressed, and pg_restore can restore it selectively. The redirect is done by
 # this (root) shell so postgres needs no write access to the backup directory.
-runuser -u postgres -- pg_dump -Fc "$DB_NAME" > "$file"
+runuser -u postgres -- pg_dump -Fc "$DB_NAME" > "$file" || {
+    rm -f "$file"
+    echo "backup failed: pg_dump returned an error" >&2
+    exit 1
+}
+# A failed run must never leave an empty file behind to occupy a retention slot.
+[[ -s "$file" ]] || {
+    rm -f "$file"
+    echo "backup failed: the dump is empty" >&2
+    exit 1
+}
 
 # An empty or truncated dump must fail loudly, not sit in the rotation as a "backup".
 runuser -u postgres -- pg_restore --list < "$file" > /dev/null
