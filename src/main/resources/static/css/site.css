@@ -326,7 +326,7 @@ h2.title { margin: 0; font-size: var(--fs-h2); line-height: 1.1; letter-spacing:
 /* footer */
 .site-footer { background: var(--footer); color: var(--footer-ink); }
 .footer-main { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 40px; padding-top: 64px; padding-bottom: 40px; }
-.footer-brand { display: flex; flex-direction: column; gap: 18px; max-width: 300px; }
+.footer-brand { display: flex; flex-direction: column; gap: 18px; max-width: 320px; }
 .footer-brand .brand { color: var(--footer-head); }
 .footer-brand .brand:hover { color: var(--footer-head); }
 .footer-brand .brand-line { font-size: var(--fs-h4); color: var(--footer-head); }
