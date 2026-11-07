@@ -3,41 +3,41 @@
 <body>
 <nav th:fragment="sidebar" class="caderly-sidebar bg-white border-end p-3" th:aria-label="#{nav.primary-landmark-label}">
   <ul class="nav nav-pills flex-column gap-1">
-    <li class="nav-item"><a class="nav-link active" th:href="@{/}" th:text="#{nav.home}">Home</a></li>
+    <li class="nav-item"><a class="nav-link" th:classappend="${activeNav == 'home'} ? 'active'" th:attr="aria-current=${activeNav == 'home'} ? 'page'" th:href="@{/}" th:text="#{nav.home}">Home</a></li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/employees}" th:text="#{nav.people}">People</a>
+      <a class="nav-link" th:classappend="${activeNav == 'people'} ? 'active'" th:attr="aria-current=${activeNav == 'people'} ? 'page'" th:href="@{/admin/employees}" th:text="#{nav.people}">People</a>
     </li>
-    <li class="nav-item"><a class="nav-link" th:href="@{/profile}" th:text="#{nav.my-profile}">My Profile</a></li>
-    <li class="nav-item"><a class="nav-link" th:href="@{/files}" th:text="#{nav.files}">Files</a></li>
-    <li class="nav-item"><a class="nav-link" th:href="@{/calendar}" th:text="#{nav.calendar}">Calendar</a></li>
+    <li class="nav-item"><a class="nav-link" th:classappend="${activeNav == 'my-profile'} ? 'active'" th:attr="aria-current=${activeNav == 'my-profile'} ? 'page'" th:href="@{/profile}" th:text="#{nav.my-profile}">My Profile</a></li>
+    <li class="nav-item"><a class="nav-link" th:classappend="${activeNav == 'files'} ? 'active'" th:attr="aria-current=${activeNav == 'files'} ? 'page'" th:href="@{/files}" th:text="#{nav.files}">Files</a></li>
+    <li class="nav-item"><a class="nav-link" th:classappend="${activeNav == 'calendar'} ? 'active'" th:attr="aria-current=${activeNav == 'calendar'} ? 'page'" th:href="@{/calendar}" th:text="#{nav.calendar}">Calendar</a></li>
     <!--/* Open to every signed-in user (ADR 0015): the Tasks pane applies to
            anyone, even though the Time off requests pane inside stays Manager/Admin only. */-->
     <li class="nav-item">
-      <a class="nav-link" th:href="@{/for-action}" th:text="#{nav.for-action}">For Action</a>
+      <a class="nav-link" th:classappend="${activeNav == 'for-action'} ? 'active'" th:attr="aria-current=${activeNav == 'for-action'} ? 'page'" th:href="@{/for-action}" th:text="#{nav.for-action}">For Action</a>
     </li>
     <!--/* UI Guidelines §1: Admin and Reports are Admin-only. Hiding them is presentation
            only — /admin/** is enforced by @PreAuthorize on the controller, and an Employee
            who types the URL still gets a 403. */-->
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/users}" th:text="#{nav.admin}">Admin</a>
+      <a class="nav-link" th:classappend="${activeNav == 'users'} ? 'active'" th:attr="aria-current=${activeNav == 'users'} ? 'page'" th:href="@{/admin/users}" th:text="#{nav.admin}">Admin</a>
     </li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/organization}" th:text="#{nav.organization}">Organization</a>
+      <a class="nav-link" th:classappend="${activeNav == 'organization'} ? 'active'" th:attr="aria-current=${activeNav == 'organization'} ? 'page'" th:href="@{/admin/organization}" th:text="#{nav.organization}">Organization</a>
     </li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/leave-types}" th:text="#{nav.leave-types}">Leave Types</a>
+      <a class="nav-link" th:classappend="${activeNav == 'leave-types'} ? 'active'" th:attr="aria-current=${activeNav == 'leave-types'} ? 'page'" th:href="@{/admin/leave-types}" th:text="#{nav.leave-types}">Leave Types</a>
     </li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/holidays}" th:text="#{nav.holidays}">Holidays</a>
+      <a class="nav-link" th:classappend="${activeNav == 'holidays'} ? 'active'" th:attr="aria-current=${activeNav == 'holidays'} ? 'page'" th:href="@{/admin/holidays}" th:text="#{nav.holidays}">Holidays</a>
     </li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/notifications}" th:text="#{nav.notifications}">Notifications</a>
+      <a class="nav-link" th:classappend="${activeNav == 'notifications'} ? 'active'" th:attr="aria-current=${activeNav == 'notifications'} ? 'page'" th:href="@{/admin/notifications}" th:text="#{nav.notifications}">Notifications</a>
     </li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/audit-log}" th:text="#{nav.audit-log}">Audit Log</a>
+      <a class="nav-link" th:classappend="${activeNav == 'audit-log'} ? 'active'" th:attr="aria-current=${activeNav == 'audit-log'} ? 'page'" th:href="@{/admin/audit-log}" th:text="#{nav.audit-log}">Audit Log</a>
     </li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-      <a class="nav-link" th:href="@{/admin/reports}" th:text="#{nav.reports}">Reports</a>
+      <a class="nav-link" th:classappend="${activeNav == 'reports'} ? 'active'" th:attr="aria-current=${activeNav == 'reports'} ? 'page'" th:href="@{/admin/reports}" th:text="#{nav.reports}">Reports</a>
     </li>
   </ul>
 </nav>

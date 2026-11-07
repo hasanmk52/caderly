@@ -278,6 +278,7 @@ class ProfileController {
         boolean isAdmin = principal.roles().contains(Role.ADMIN);
         model.addAttribute("employee", employee);
         model.addAttribute("isSelf", isSelf);
+        model.addAttribute("activeNav", isSelf ? "my-profile" : "people");
         model.addAttribute("tenureYears", tenureYears(employee));
         model.addAttribute("activeTab", tab);
         model.addAttribute("visibleTabs", visibleTabs(isSelf, isAdmin));
