@@ -49,6 +49,11 @@ public class DisplayFormats {
         return date == null ? "—" : DATE.withLocale(LocaleContextHolder.getLocale()).format(date);
     }
 
+    /** Today's date in the tenant's timezone, e.g. "Sat 7 Nov 2026" under the home greeting. */
+    public String today() {
+        return date(LocalDate.now(clock.withZone(tenants.currentTimezone())));
+    }
+
     /** The calendar date an instant falls on in the tenant's timezone (e.g. a file's upload). */
     public String dateOf(@Nullable Instant instant) {
         return instant == null ? "—" : date(instant.atZone(tenants.currentTimezone()).toLocalDate());

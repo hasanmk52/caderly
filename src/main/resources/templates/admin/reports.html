@@ -11,39 +11,39 @@
     <div class="row row-cols-1 row-cols-md-3 g-3">
       <div class="col">
         <div class="card h-100">
-          <div class="card-body">
+          <div class="card-body d-flex flex-column">
             <i class="bi bi-clipboard-data fs-3 d-block mb-2 text-primary" aria-hidden="true"></i>
             <h2 class="card-title h6" th:text="#{admin.reports.card.leave-balance.title}">Leave Balance</h2>
             <p class="card-text text-muted small" th:text="#{admin.reports.card.leave-balance.description}">
               Each employee's granted, used, and remaining balance per leave type.
             </p>
-            <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/reports/leave-balance}"
+            <a class="btn btn-outline-secondary btn-sm mt-auto align-self-start" th:href="@{/admin/reports/leave-balance}"
                th:text="#{admin.reports.action.open}">Open report</a>
           </div>
         </div>
       </div>
       <div class="col">
         <div class="card h-100">
-          <div class="card-body">
+          <div class="card-body d-flex flex-column">
             <i class="bi bi-bar-chart-line fs-3 d-block mb-2 text-primary" aria-hidden="true"></i>
             <h2 class="card-title h6" th:text="#{admin.reports.card.leave-utilization.title}">Leave Utilization</h2>
             <p class="card-text text-muted small" th:text="#{admin.reports.card.leave-utilization.description}">
               Days used and requests per employee and leave type over a date range.
             </p>
-            <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/reports/leave-utilization}"
+            <a class="btn btn-outline-secondary btn-sm mt-auto align-self-start" th:href="@{/admin/reports/leave-utilization}"
                th:text="#{admin.reports.action.open}">Open report</a>
           </div>
         </div>
       </div>
       <div class="col">
         <div class="card h-100">
-          <div class="card-body">
+          <div class="card-body d-flex flex-column">
             <i class="bi bi-people fs-3 d-block mb-2 text-primary" aria-hidden="true"></i>
             <h2 class="card-title h6" th:text="#{admin.reports.card.headcount.title}">Headcount</h2>
             <p class="card-text text-muted small" th:text="#{admin.reports.card.headcount.description}">
               Active employee counts by month and department.
             </p>
-            <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/reports/headcount}"
+            <a class="btn btn-outline-secondary btn-sm mt-auto align-self-start" th:href="@{/admin/reports/headcount}"
                th:text="#{admin.reports.action.open}">Open report</a>
           </div>
         </div>
