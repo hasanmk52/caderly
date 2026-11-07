@@ -225,6 +225,7 @@ h2.title { margin: 0; font-size: var(--fs-h2); line-height: 1.1; letter-spacing:
 .bars span { flex: 1; background: var(--brand); border-radius: 4px 4px 0 0; }
 .bar-labels { display: flex; gap: 14px; font-size: var(--fs-label); color: var(--ink-3); }
 .bar-labels span { flex: 1; text-align: center; }
+.pill-ical { right: 10px; top: 150px; }
 .pill { position: absolute; background: var(--card); border: 1px solid var(--rule); border-radius: 999px; padding: 7px 12px; font-size: var(--fs-2xs); font-weight: 500; box-shadow: 0 6px 18px -10px rgba(21, 23, 28, .3); }
 
 /* arithmetic */
@@ -433,12 +434,36 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   .site-nav .brand-name, .nav-actions .btn { white-space: nowrap; }
 }
 @media (max-width: 560px) {
+  /* Phones: tighter vertical rhythm, and every mock vignette rearranged so nothing overlaps. */
+  .section { padding-top: 56px; padding-bottom: 56px; }
+  .section-head { margin-bottom: 32px; }
+  .hero { gap: 28px; padding-top: 32px; padding-bottom: 40px; }
+  /* Two chips instead of four: at this width the balance chip and bubble collided with the others. */
+  .chip-balance, .chip-bubble { display: none; }
   .chip-booking { width: 200px; left: 0; }
-  .chip-approval { right: 0; }
-  .chip-balance { left: 0; }
+  .chip-approval { right: 0; top: auto; bottom: 14%; }
+  .feature { padding: 24px 24px 0; }
+  .vignette { height: 168px; }
+  .pill-ical { top: 128px; }
+  /* Portrait moves right and the tags stack on the left, so no tag sits over a face. */
+  .vignette .portrait { left: auto; right: 0; transform: none; width: 140px; height: 140px; bottom: -20px; }
+  .tag-left { left: 0; top: 12px; }
+  .tag-right { left: 0; right: auto; top: 64px; }
+  .steps { margin-top: 32px; }
+  .calc { padding: 20px; gap: 18px; }
+  /* The count sits beside the sum instead of stacking above it with an empty band. */
+  .result { flex-wrap: nowrap; gap: 16px; }
+  .count { width: 56px; height: 56px; font-size: 28px; }
+  .sum { flex: 1 1 auto; min-width: 0; font-size: var(--fs-sm); }
+  .sum .mono { white-space: nowrap; }
   .auth-card { padding: 28px 22px 24px; }
   .days { gap: 4px; }
-  .day .num { font-size: 15px; }
+  .day .num { font-size: var(--fs-md); }
+}
+@media (max-width: 400px) {
+  /* Too narrow for two tags beside a portrait: keep the one that names the person or the expiry. */
+  .vignette .tag-left { display: none; }
+  .tag-right { top: 12px; }
 }
 @media (max-width: 380px) {
   /* Narrow phones: Menu becomes icon-only (its label stays for screen readers) so the bar fits. */
