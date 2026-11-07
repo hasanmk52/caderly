@@ -58,6 +58,11 @@ openssl rand -base64 32      # CADERLY_EMPLOYEE_ENCRYPTION_KEY, back this up off
 openssl rand -base64 24      # DB_PASSWORD
 ```
 
+Mail: for a real provider such as Brevo set `SMTP_HOST`, `SMTP_PORT=587`, `SMTP_USERNAME`,
+`SMTP_PASSWORD`, `SMTP_AUTH=true` and `SMTP_STARTTLS=true`, and verify the sending domain (SPF/DKIM/
+DMARC records, DNS only). For a test inbox instead, run Mailpit with `docker compose --profile demo up -d`
+and use `SMTP_HOST=localhost`, `SMTP_PORT=1025`, both switches `false`.
+
 Set `CADERLY_SUPERADMIN_IP_ALLOWLIST` to the addresses that may open `/superadmin`. Leave it empty
 and the console is unreachable.
 
