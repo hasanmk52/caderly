@@ -101,6 +101,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .nav-links a:hover { color: var(--brand); }
 .nav-actions { display: flex; align-items: center; gap: 20px; }
 .nav-actions .login { color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 4px; }
+.nav-menu { display: none; }
 
 /* ---------- hero ---------- */
 .hero {
@@ -373,17 +374,49 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   .auth-backdrop .side { display: none; }
 }
 @media (max-width: 560px) {
-  /* Phones: the section links live in the footer; the header keeps the two actions on one row. */
-  .site-nav { flex-wrap: nowrap; justify-content: space-between; gap: 12px; }
-  .nav-links { display: none; }
-  .nav-actions { gap: 12px; }
+  /* Phones: the section links and Log in move into the Menu disclosure, so the bar holds only the
+     brand, Start free and Menu, and still fits at 320px. */
+  .site-nav { flex-wrap: nowrap; gap: 8px; }
+  .site-nav .brand { margin-right: auto; }
+  .nav-links, .nav-actions .login { display: none; }
   .nav-actions .btn { padding: 9px 14px; font-size: 14px; }
+  .nav-menu { display: block; }
+  .nav-menu summary {
+    display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; cursor: pointer;
+    list-style: none; border: 1.5px solid var(--field); border-radius: 8px;
+    font-weight: 600; font-size: 14px; color: var(--ink);
+  }
+  .nav-menu summary::-webkit-details-marker { display: none; }
+  .nav-menu[open] summary { border-color: var(--brand); color: var(--brand); }
+  /* Anchored to the sticky header (a positioned box), so it spans the full width below the bar. */
+  .nav-menu-panel {
+    position: absolute; left: 0; right: 0; top: 100%; margin: 0; padding: 8px 16px 12px; list-style: none;
+    background: var(--card); border-bottom: 1px solid var(--rule); box-shadow: var(--shadow-float);
+  }
+  .nav-menu-panel a {
+    display: flex; align-items: center; min-height: 48px; padding: 0 8px;
+    color: var(--ink); text-decoration: none; font-weight: 500; font-size: 17px;
+  }
+  .nav-menu-panel a:hover { color: var(--brand); }
+  .nav-menu-panel .sep { border-top: 1px solid var(--rule); margin-top: 4px; padding-top: 4px; }
+  .site-nav .brand-name, .nav-actions .btn { white-space: nowrap; }
   .chip-booking { width: 200px; left: 0; }
   .chip-approval { right: 0; }
   .chip-balance { left: 0; }
   .auth-card { padding: 28px 22px 24px; }
   .days { gap: 4px; }
   .day .num { font-size: 15px; }
+}
+@media (max-width: 380px) {
+  /* Narrow phones: Menu becomes icon-only (its label stays for screen readers) so the bar fits. */
+  .site-nav { padding-left: 16px; padding-right: 16px; }
+  .site-nav .brand-name { font-size: 19px; }
+  .nav-actions .btn { padding: 9px 12px; }
+  .nav-menu summary { width: 40px; padding: 0; justify-content: center; }
+  .nav-menu summary span {
+    position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
