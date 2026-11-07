@@ -43,7 +43,7 @@ Mirrors `EmployeeHiredEventListener`'s reasoning, not `EmployeeInviteAcceptedLis
 
 **Positive:**
 - Closes the gap with no change to the authorization model itself — every existing `@PreAuthorize("hasRole('MANAGER')")` site, and the `ADMIN > MANAGER` role hierarchy, keep working exactly as before.
-- The backfill migration means existing org charts (e.g. the `mhz` tenant's real data) self-correct on the next deploy — no manual per-user SQL grant needed.
+- The backfill migration means existing org charts (e.g. the first tenant's real data) self-correct on the next deploy — no manual per-user SQL grant needed.
 - `AppUser.revoke(Role)` now actually exists, closing a gap between `UserRole`'s class-doc comment (which already claimed "managed through `AppUser#grant` / `AppUser#revoke`") and reality.
 
 **Negative / open (known, accepted limitation):**

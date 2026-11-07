@@ -62,7 +62,7 @@ relationship-field changes).
 
 Unlike `admin/notifications` and `admin/audit-log`, the three report preview tables render their
 full result set on one page, no prev/next pagination. Row counts are bounded by employee count ×
-leave-type count (Balance/Utilization) or month count × department count (Headcount) — at MHZ's
+leave-type count (Balance/Utilization) or month count × department count (Headcount) — at the first customer's
 and the pilot tenants' scale (tens to low hundreds of employees), this stays well within a
 single-page render. Revisit if a real tenant's row count makes that untrue (CLAUDE.md §11: no
 optimization ahead of a benchmark showing a problem).
