@@ -140,7 +140,7 @@
         <p class="eyebrow" th:text="#{site.home.eyebrow.arithmetic}">The arithmetic</p>
         <h2 class="title" th:text="#{site.home.arithmetic.heading}">Every number comes with its working</h2>
         <p class="muted-lg" th:text="#{site.home.arithmetic.p1}">Most HR tools show a result and hide the rule.</p>
-        <a class="btn btn-outline" style="align-self:flex-start;margin-top:6px" href="#setup" th:text="#{site.home.arithmetic.cta}">See how setup works</a>
+        <a class="btn btn-outline cta-gap" href="#setup" th:text="#{site.home.arithmetic.cta}">See how setup works</a>
       </div>
       <div class="calc anim" role="img" th:aria-label="#{site.home.arithmetic.aria}">
         <div class="calc-head">
@@ -170,7 +170,7 @@
     </div>
   </section>
 
-  <section id="setup" class="wrap section" style="padding-bottom:40px">
+  <section id="setup" class="wrap section section-setup">
     <div class="section-head" style="margin-bottom:0">
       <p class="eyebrow" th:text="#{site.home.eyebrow.setup}">Setup</p>
       <h2 class="title" th:text="#{site.home.setup.heading}">Running in three steps</h2>
@@ -183,7 +183,7 @@
     </ol>
   </section>
 
-  <section id="security" class="wrap section" style="padding-top:72px">
+  <section id="security" class="wrap section section-security">
     <div class="trust">
       <div class="trust-visual" aria-hidden="true">
         <div class="disc"></div>
@@ -227,7 +227,7 @@
         <h2 class="title" style="margin-bottom:12px" th:text="#{site.home.faq.heading}">Questions</h2>
         <div class="faq">
           <details th:each="n : ${ {1,2,3,4,5,6} }">
-            <summary><span th:text="#{|site.home.faq.q${n}|}">Question</span><span class="plus" aria-hidden="true">+</span></summary>
+            <summary><span th:text="#{|site.home.faq.q${n}|}">Question</span><svg class="plus" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></summary>
             <p th:text="#{|site.home.faq.a${n}|}">Answer</p>
           </details>
         </div>
@@ -239,7 +239,7 @@
     <div class="closing">
       <h2 class="title" th:text="#{site.home.closing.heading}">Set up your workspace this afternoon</h2>
       <p class="muted-lg" th:text="#{site.home.closing.lead}">Free for up to 50 employees.</p>
-      <a class="btn btn-primary btn-lg" style="margin-top:6px" th:href="@{/signup}" th:text="#{site.cta.start-free}">Start free</a>
+      <a class="btn btn-primary btn-lg cta-gap" th:href="@{/signup}" th:text="#{site.cta.start-free}">Start free</a>
     </div>
   </section>
 </main>
