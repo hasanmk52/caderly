@@ -184,7 +184,7 @@ h2.title { margin: 0; font-size: clamp(32px, 3.6vw, 42px); line-height: 1.1; let
 .panel .act.no { color: var(--ink); border: 1px solid var(--field); padding: 6px 0; }
 .week { display: grid; grid-template-columns: 34px repeat(7, minmax(0, 1fr)); gap: 6px 4px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .week .d { text-align: center; }
-.week .we { color: #A0A6B1; }
+.week .we { color: var(--mute); }
 .week .off { height: 18px; background: #F3F4F6; border-radius: 4px; }
 .week .bar { height: 18px; border-radius: 9px; }
 .week .s2 { grid-column: span 2; }
@@ -206,9 +206,12 @@ h2.title { margin: 0; font-size: clamp(32px, 3.6vw, 42px); line-height: 1.1; let
 .days { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
 .day { position: relative; border: 1px solid var(--brand-line-soft); border-radius: 8px; padding: 10px 0; text-align: center; display: flex; flex-direction: column; gap: 2px; }
 .day .dow { font-size: 11px; color: var(--ink-3); }
-.day .num { font-family: var(--mono); font-size: 17px; font-weight: 500; }
-.day.skip { opacity: .4; border-color: var(--rule); background: var(--paper); }
-.day .strike { position: absolute; left: 14%; right: 14%; top: 50%; height: 2px; background: var(--ink); transform-origin: left; }
+.day .num { position: relative; font-family: var(--mono); font-size: 17px; font-weight: 500; }
+/* Skipped days are greyed by colour, not opacity, so their text keeps AA contrast (5.4:1). */
+.day.skip { border-color: var(--rule); background: var(--paper); }
+.day.skip .num { color: var(--ink-3); }
+/* Inside .num, so the line crosses the digit at any font size. */
+.day .strike { position: absolute; left: 14%; right: 14%; top: calc(50% - 1px); height: 2px; background: var(--ink-2); transform-origin: left; }
 .result { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
 .count { position: relative; width: 84px; height: 84px; flex: none; border-radius: 50%; background: var(--brand); color: var(--on-brand); font-family: var(--mono); font-size: 40px; font-weight: 500; }
 .count span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
@@ -219,8 +222,8 @@ h2.title { margin: 0; font-size: clamp(32px, 3.6vw, 42px); line-height: 1.1; let
 .sum .total { border-top: 1px solid var(--rule); padding-top: 6px; font-weight: 600; }
 
 /* loop: static styles above are the final state, so no-motion users see the answer */
-.anim .day.wk { animation: cd-wk 12s ease-in-out infinite; }
-.anim .day.hol { animation: cd-hol 12s ease-in-out infinite; }
+.anim .day.wk .num { animation: cd-wk 12s ease-in-out infinite; }
+.anim .day.hol .num { animation: cd-hol 12s ease-in-out infinite; }
 .anim .day.wk .strike { animation: cd-sw 12s ease-in-out infinite; }
 .anim .day.hol .strike { animation: cd-sh 12s ease-in-out infinite; }
 .anim .n8 { animation: cd-n8 12s ease-in-out infinite; }
@@ -229,8 +232,8 @@ h2.title { margin: 0; font-size: clamp(32px, 3.6vw, 42px); line-height: 1.1; let
 .anim .l2 { animation: cd-l2 12s ease-in-out infinite; }
 .anim .l3 { animation: cd-l3 12s ease-in-out infinite; }
 .anim .total { animation: cd-l4 12s ease-in-out infinite; }
-@keyframes cd-wk { 0%, 16% { opacity: 1; } 22%, 92% { opacity: .4; } 98%, 100% { opacity: 1; } }
-@keyframes cd-hol { 0%, 38% { opacity: 1; } 44%, 92% { opacity: .4; } 98%, 100% { opacity: 1; } }
+@keyframes cd-wk { 0%, 16% { color: var(--ink); } 22%, 92% { color: var(--ink-3); } 98%, 100% { color: var(--ink); } }
+@keyframes cd-hol { 0%, 38% { color: var(--ink); } 44%, 92% { color: var(--ink-3); } 98%, 100% { color: var(--ink); } }
 @keyframes cd-sw { 0%, 16% { transform: scaleX(0); } 22%, 92% { transform: scaleX(1); } 98%, 100% { transform: scaleX(0); } }
 @keyframes cd-sh { 0%, 38% { transform: scaleX(0); } 44%, 92% { transform: scaleX(1); } 98%, 100% { transform: scaleX(0); } }
 @keyframes cd-n8 { 0%, 16% { opacity: 1; } 20%, 94% { opacity: 0; } 98%, 100% { opacity: 1; } }
@@ -372,10 +375,8 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   .tag-left { left: 0; }
   .tag-right { left: auto; right: 0; }
   .auth-backdrop .side { display: none; }
-}
-@media (max-width: 560px) {
-  /* Phones: the section links and Log in move into the Menu disclosure, so the bar holds only the
-     brand, Start free and Menu, and still fits at 320px. */
+  /* Phones and tablets: the inline links wrap below about 835px, so they and Log in move into the
+     Menu disclosure, leaving the brand, Start free and Menu on one row down to 320px. */
   .site-nav { flex-wrap: nowrap; gap: 8px; }
   .site-nav .brand { margin-right: auto; }
   .nav-links, .nav-actions .login { display: none; }
@@ -400,6 +401,8 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   .nav-menu-panel a:hover { color: var(--brand); }
   .nav-menu-panel .sep { border-top: 1px solid var(--rule); margin-top: 4px; padding-top: 4px; }
   .site-nav .brand-name, .nav-actions .btn { white-space: nowrap; }
+}
+@media (max-width: 560px) {
   .chip-booking { width: 200px; left: 0; }
   .chip-approval { right: 0; }
   .chip-balance { left: 0; }
