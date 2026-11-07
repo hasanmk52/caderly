@@ -6,7 +6,7 @@ You are working on **Caderly**, a multi-tenant HRIS + Leave Management SaaS buil
 
 ## 1. Product one-liner
 
-Multi-tenant SaaS replacing TalentHR's free plan for MHZ Group (customer #1) and 2-5 friendly pilot companies. Region-agnostic: every tenant configures its own leave types, weekend days, holiday calendar, and org units.
+Multi-tenant SaaS replacing TalentHR's free plan for a first customer (customer #1) and 2-5 friendly pilot companies. Region-agnostic: every tenant configures its own leave types, weekend days, holiday calendar, and org units.
 
 ---
 
@@ -15,8 +15,9 @@ Multi-tenant SaaS replacing TalentHR's free plan for MHZ Group (customer #1) and
 - **Product spec:** `docs/Caderly_PRD.md` — 29 sections. Cite the section number when quoting.
 - **Delivery plan:** `docs/Caderly_Implementation_Plan.md` — phased sub-tasks with DoD.
 - **UI guidelines:** `docs/UI_Guidelines.md` — layout, color, typography, component conventions, htmx/Alpine rules. Consult before writing any Thymeleaf template. Any deviation requires updating this document first.
-- **Current sub-phase:** `docs/CURRENT_PHASE.md` — read this at the start of every session.
+- **Current sub-phase:** `docs/CURRENT_PHASE.md` — a local working file (git-ignored, not in the repository); read it at the start of every session.
 - **Architecture Decision Records:** `docs/adr/NNNN-<slug>.md` — one per significant choice. Add an ADR whenever you make a non-obvious design decision.
+- **Deployment:** `INSTALL.md`, `Dockerfile`, `docker-compose.yml`, `deploy/` — see §3 and ADR 0023. The detailed runbook is kept privately, not in the repo.
 
 **Rule:** At the start of every session, `Read` `docs/CURRENT_PHASE.md` and the specific PRD + Implementation Plan sections it references. Do not skim. Do not assume — read.
 
@@ -38,7 +39,7 @@ Multi-tenant SaaS replacing TalentHR's free plan for MHZ Group (customer #1) and
 - **Playwright-Java** for E2E
 - **springdoc-openapi** for API docs
 - **JaCoCo** for coverage
-- **Docker + docker-compose** for deployment of the app + reverse proxy only; **PostgreSQL is external** (host-native install locally and in MHZ prod, managed service in cloud tenants). Distroless JRE 25 base image.
+- **Docker + docker-compose** for deployment of the app + reverse proxy only; **PostgreSQL is external** (host-native install locally and in the first customer's production, managed service in cloud tenants). Distroless JRE 25 base image. Reverse proxy is **Caddy** (wildcard TLS via the DNS-01 challenge); the containers use host networking (ADR 0023).
 - **Testcontainers** in tests uses its own ephemeral Postgres via Docker — unrelated to dev/prod Postgres.
 
 **Never suggest** React, Redis, Kafka, MongoDB, microservices, JWT-in-localStorage, or any dependency the PRD did not authorize. Push back and cite §20 or §7 if pressed.
@@ -65,6 +66,7 @@ com.caderly.caderlyhr
 ├── api             # REST controllers under /api/v1
 ├── superadmin      # Cross-tenant console (separate security realm)
 ├── signup          # Self-serve workspace sign-up: PendingSignup, SignupService (ADR 0022)
+├── bootstrap       # Dev-profile data seeding (DevDataSeeder)
 └── common          # BaseEntity, TenantAwareEntity, exceptions, utils
 ```
 
@@ -115,25 +117,24 @@ Maps to OWASP Top 10 (2021 edition). Every rule is enforced by code + test, not 
 ### A04 Insecure Design
 - Threat-model any new state-changing feature in the ADR before implementing.
 - No self-approval (employee cannot approve own leave, even as Manager/Admin — PRD BR-6).
-- Rate-limit login (Bucket4j, 10/min/IP), password-reset request (3/hour/email), general API (300/min/session).
+- Rate-limit with Bucket4j (`RateLimitFilter`): login 10/min/IP (Super Admin login on its own counter), password-reset request 3/hour/email, sign-up per IP and per email, and the sign-up address check. A general per-session API limit is not implemented.
 
 ### A05 Security Misconfiguration
 - CSRF enabled on all state-changing forms (Spring Security default).
 - Security headers via `SecurityHeadersFilter`: CSP, X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, Permissions-Policy minimal.
-- Actuator endpoints exposed only over management port + auth; `/actuator/env` and `/actuator/heapdump` disabled in prod profile.
+- Actuator exposure is pinned to `health,prometheus` (`management.endpoints.web.exposure.include`), so `env`, `heapdump` and the rest do not exist. In deployment the whole actuator moves to a loopback-only management port that the proxy never forwards (`docker-compose.yml`); `SecurityConfig.prometheusOnManagementPort` allows the scrape path only on that port.
 - No default passwords in `application.yml` — everything from env vars.
 - Directory listing off. Server banner hidden.
 - **Error responses never carry internals.** `spring.web.error.include-stacktrace`, `include-exception`, `include-message` and `include-binding-errors` are all pinned to `never`/`false` in `application.yml`. Pinned, not left to Boot's defaults: `spring-boot-devtools` raises all four to `ALWAYS`, which is how a 403 once returned the whole filter chain to the client. Note these moved from `server.error.*` in Boot 4.0.0 and the old keys are ignored silently — `ErrorPageResolutionTest` asserts both the bound value and the namespace.
 - **Every error status renders a Caderly page.** `templates/error/` carries `403`, `404`, `4xx` and `5xx`; the series catch-alls are what keep a new status from falling through to Boot's Whitelabel page. An RBAC test that only asserts the status code will not notice — assert the rendered page too.
 
 ### A06 Vulnerable and Outdated Components
-- Dependabot enabled on GitHub.
-- Trivy scan on built Docker image in CI. Block merge on HIGH/CRITICAL.
+- Intended controls, **not enabled yet** (do not describe them as in place): Dependabot on GitHub, and a Trivy scan of the built Docker image in CI that blocks merge on HIGH/CRITICAL.
 
 ### A07 Identification and Authentication Failures
-- Session cookies: `HttpOnly`, `Secure`, `SameSite=Lax`, short-lived access + refresh pattern.
+- Session cookies: `HttpOnly`, `Secure`, `SameSite=Lax`; 8 h idle timeout plus a 24 h absolute cap (`AbsoluteSessionTimeoutFilter`).
 - Account lockout after 5 failures in 15 min (per email + IP).
-- MFA (TOTP) supported per-user, enforceable per-tenant for Admin role.
+- MFA (TOTP) supported per-user, enforceable per-tenant for Admin role (planned; not built yet).
 - Session revocation on password change and role change.
 
 ### A08 Software and Data Integrity Failures
@@ -175,8 +176,8 @@ Currently in use: `email_outbox` (from sub-phase 1.2). Planned: `webhook_outbox`
 ## 7. Coding standards
 
 - **Java 25 features to prefer:** records for DTOs and value objects, pattern matching in `switch`, `sealed` interfaces for state machines (e.g. `LeaveRequestStatus`), `var` for obvious locals only.
-- **Style:** IntelliJ's default Java formatter (Reformat Code). Not enforced by a CLI/CI formatter — `.editorconfig` at the repo root pins the baseline (4-space indent, UTF-8, LF, final newline) so IntelliJ applies it consistently. Checkstyle/PMD/SpotBugs still enforce substantive rules; only the opinionated reformatter (previously Spotless + Google Java Format) was dropped.
-- **Static analysis:** Checkstyle + SpotBugs + PMD + ErrorProne. CI blocks merge on new violations.
+- **Style:** IntelliJ's default Java formatter (Reformat Code). Not enforced by a CLI/CI formatter — `.editorconfig` at the repo root pins the baseline (4-space indent, UTF-8, LF, final newline) so IntelliJ applies it consistently. There is no Spotless or other formatter in the build.
+- **Static analysis:** PMD runs on `verify` in report-only mode (`failOnViolation=false`). SpotBugs is configured but not bound to the build, because its current release cannot parse Java 25 class files. There is no Checkstyle or ErrorProne. CI blocks merge on failing tests, not on static-analysis findings.
 - **Null-safety:** use `Optional<T>` for return types that may be absent; never for parameters. Non-null by default: annotate the package with `@NullMarked` (JSpecify).
 - **Exceptions:** custom `CaderlyException` hierarchy with `errorCode`; controller-level `@ExceptionHandler` maps to RFC 7807 Problem Details.
 - **Transactions:** `@Transactional` on service methods, never on repositories or controllers. Read-only by default; annotate write methods `@Transactional`.
@@ -193,7 +194,7 @@ Currently in use: `email_outbox` (from sub-phase 1.2). Planned: `webhook_outbox`
 
 ## 8. Testing rules (block merge on failure)
 
-- **Unit:** JUnit 5 + AssertJ + Mockito. Pure logic. Target ≥70% line coverage per module (JaCoCo).
+- **Unit:** JUnit 5 + AssertJ + Mockito. Pure logic. Target ≥70% line coverage per module; JaCoCo reports it, the threshold is declared but not enforced by the build yet.
 - **Integration:** `@SpringBootTest` + Testcontainers Postgres. Every service happy path + at least one sad path. Every controller: one 200 test + one 403 test per protected endpoint.
 - **Architecture:** ArchUnit tests in `com.caderly.caderlyhr.architecture` package. Enforce:
   - Every `@Entity` in a tenant package extends `TenantAwareEntity`.
@@ -202,7 +203,7 @@ Currently in use: `email_outbox` (from sub-phase 1.2). Planned: `webhook_outbox`
   - No direct JDBC or `EntityManager.createNativeQuery` outside repositories.
 - **Tenant isolation:** Every write test uses `TenantIsolationTestBase` which seeds tenants A and B, and asserts the write only touched the current tenant.
 - **E2E:** Playwright-Java, one happy path per user-facing module.
-- **Security tests:** OWASP ZAP baseline in nightly CI (weekly at minimum).
+- **Security tests:** OWASP ZAP baseline in nightly CI (weekly at minimum) — not set up yet.
 - **Test naming:** `methodUnderTest_condition_expectedResult` — e.g. `book_whenBalanceInsufficient_throwsInsufficientBalance`.
 
 **Rule for Claude:** when implementing any feature, write the failing test first, then the code. Especially non-negotiable for: leave duration algorithm, tenant filter, access control decisions, audit writes.
@@ -222,6 +223,7 @@ Currently in use: `email_outbox` (from sub-phase 1.2). Planned: `webhook_outbox`
   - [ ] Audit log covers all writes
   - [ ] No secrets in code
   - [ ] PRD section that this implements: §_._
+- **Deployment changes** (Dockerfile, compose, Caddyfile, `deploy/`, environment variables) must update `INSTALL.md` and, for a non-obvious decision, ADR 0023 or a new ADR.
 
 ---
 
