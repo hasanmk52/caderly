@@ -4,6 +4,9 @@
 #   restore-drill.sh /var/backups/caderly/<dump file>
 set -euo pipefail
 
+# Same minimal-PATH reason as backup.sh: runuser lives in /usr/sbin.
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 dump="${1:?usage: restore-drill.sh <dump file>}"
 scratch="caderly_restore_drill"
 as_postgres() { runuser -u postgres -- "$@"; }
