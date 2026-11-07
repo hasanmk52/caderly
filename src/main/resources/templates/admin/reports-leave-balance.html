@@ -73,9 +73,9 @@
             <td th:text="${row.employeeName()}">Jane Doe</td>
             <td th:text="${row.departmentName()} ?: '—'">Engineering</td>
             <td th:text="${row.leaveTypeName()}">Vacation</td>
-            <td class="text-end" th:text="${row.granted()}">20</td>
-            <td class="text-end" th:text="${row.used()}">5</td>
-            <td class="text-end" th:text="${row.remaining()}">15</td>
+            <td class="text-end font-figure" th:text="${row.granted()}">20</td>
+            <td class="text-end font-figure" th:text="${row.used()}">5</td>
+            <td class="text-end font-figure" th:text="${row.remaining()}">15</td>
           </tr>
         </tbody>
       </table>

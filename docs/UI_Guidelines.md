@@ -108,6 +108,7 @@ and matches `docs/design-system/guidelines/BRAND.source.md` §9.3's explicit rec
   - `micro`: 0.75 rem / 500 uppercase tracked — badge labels only
 - **Line height:** 1.5 for body, 1.25 for headings.
 - **Weight:** 400 default, 500 for emphasis, 600 for headings and interactive labels (nav, buttons). Do not use 700+.
+- **Figures:** IBM Plex Mono (400/500, vendored beside Plex Sans, BRAND §6) via the `.font-figure` utility in `caderly.css` for balances, durations, tenure, report number columns and timestamps: anything a person compares down a column. Running text stays in Plex Sans.
 
 ---
 
@@ -128,9 +129,9 @@ Prefer: `mb-2` (0.5rem), `mb-3` (1rem), `mb-4` (1.5rem), `mb-5` (3rem). Same sca
 ## 5. Iconography
 
 - **Primary icon set:** Bootstrap Icons (`bi-*`), already in classpath via WebJar.
-- **Empty-state illustrations:** use unDraw (public domain SVG). Store under `src/main/resources/static/img/empty/` and reference by name. No custom illustration commissioning in MVP.
+- **Empty states:** a Bootstrap Icon at `fs-1`, muted (see §7.1). No illustrations.
 - **Leave-type icons:** each `LeaveType` has an icon name field (e.g., `bi-palm`, `bi-bandaid`, `bi-calendar-heart`). Rendered wherever the type appears, colored per `LeaveType.color`.
-- **Sizing:** icons inline with text = `1em`, standalone icons in cards = `1.25rem`, empty-state illustrations = `240 px` wide.
+- **Sizing:** icons inline with text = `1em`, standalone icons in cards = `1.25rem`, empty-state icons = `fs-1`.
 
 ---
 
@@ -227,7 +228,8 @@ Existing code in `people/list.html`, `people/profile.html`, `admin/users.html`, 
 Every collection view (People, Files, Documents, Time-off history, Tasks, Approvals, Reports) must have a designed empty state. Never show an empty table or a bare "No results."
 
 Structure:
-1. Centered unDraw illustration (240 px wide, opacity 0.85).
+1. Centered Bootstrap Icon (`fs-1`, muted), the same pattern on every page. unDraw art was planned
+   but never adopted; icons keep empty states consistent and cost nothing to maintain.
 2. `h3` explanatory title ("No documents yet").
 3. One-line supporting text ("Upload employment docs like contracts, IDs, certifications.").
 4. Primary action button ("Upload document").

@@ -20,7 +20,7 @@
                   th:text="${employee.status.label}">Active</span>
             <p class="text-muted small mb-1" th:if="${tenureYears != null}">
               <i class="bi bi-clock-history" aria-hidden="true"></i>
-              <span th:text="${tenureYears}">2</span>
+              <span class="font-figure" th:text="${tenureYears}">2</span>
               <span th:text="${tenureYears == 1} ? #{profile.tenure.unit-singular} : #{profile.tenure.unit-plural}">yr</span>
               <span th:text="#{profile.tenure.suffix}">tenure</span>
             </p>
@@ -242,7 +242,7 @@
                              th:style="${type.color != null} ? 'color:' + ${type.color}" aria-hidden="true"></i>
                           <span class="fw-semibold" th:text="${type.name}">Vacation</span>
                         </div>
-                        <span th:text="${type.remaining}">15</span> / <span th:text="${type.granted}">30</span> <span th:text="#{profile.timeoff.remaining-suffix}">remaining</span>
+                        <span class="font-figure"><span th:text="${type.remaining}">15</span> / <span th:text="${type.granted}">30</span></span> <span th:text="#{profile.timeoff.remaining-suffix}">remaining</span>
                       </div>
                     </div>
                   </div>
@@ -275,7 +275,7 @@
                             <span th:text="${req.leaveType.name}">Vacation</span>
                           </td>
                           <td><span th:text="${req.startDate}">2026-08-17</span> - <span th:text="${req.endDate}">2026-08-21</span></td>
-                          <td th:text="${req.durationDays}">5.00</td>
+                          <td class="font-figure" th:text="${req.durationDays}">5.00</td>
                           <td>
                             <span class="badge" th:text="${req.status.label}"
                                   th:classappend="${req.status.name() == 'APPROVED'} ? 'bg-success-subtle text-success-emphasis' : (${req.status.name() == 'PENDING'} ? 'bg-warning-subtle text-warning-emphasis' : (${req.status.name() == 'REJECTED'} ? 'bg-danger-subtle text-danger-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'))">

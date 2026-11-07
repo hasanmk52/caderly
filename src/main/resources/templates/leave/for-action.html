@@ -22,7 +22,7 @@
             <div class="text-muted small">
               <span th:text="${row.leaveTypeName}">Vacation</span> &middot;
               <span th:text="${row.startDate}">2026-08-17</span> - <span th:text="${row.endDate}">2026-08-21</span>
-              &middot; <span th:text="${row.durationDays}">5.00</span> day(s)
+              &middot; <span class="font-figure" th:text="${row.durationDays}">5.00</span> day(s)
             </div>
             <div class="text-muted small" th:if="${row.note}" th:text="${row.note}">Family trip</div>
           </div>
@@ -76,7 +76,7 @@
             <span th:text="${row.leaveTypeName}">Vacation</span>
           </td>
           <td><span th:text="${row.startDate}">2026-08-17</span> - <span th:text="${row.endDate}">2026-08-21</span></td>
-          <td th:text="${row.durationDays}">5.00</td>
+          <td class="font-figure" th:text="${row.durationDays}">5.00</td>
           <td>
             <span class="badge" th:text="${row.statusLabel}"
                   th:classappend="${row.statusLabel == 'Approved'} ? 'bg-success-subtle text-success-emphasis' : (${row.statusLabel == 'Rejected'} ? 'bg-danger-subtle text-danger-emphasis' : 'bg-secondary-subtle text-secondary-emphasis')">

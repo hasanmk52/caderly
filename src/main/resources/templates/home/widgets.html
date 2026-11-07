@@ -24,7 +24,7 @@
                th:style="${balance.color() != null} ? 'color:' + ${balance.color()}" aria-hidden="true"></i>
             <span class="fw-semibold small" th:text="${balance.leaveTypeName()}">Annual</span>
           </div>
-          <span class="display-6 me-1" th:text="${balance.remaining()}">15</span>
+          <span class="display-6 me-1 font-figure" th:text="${balance.remaining()}">15</span>
           <span class="text-muted small" th:text="#{home.days-remaining}">days remaining</span>
         </div>
       </button>

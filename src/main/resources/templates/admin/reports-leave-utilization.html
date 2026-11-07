@@ -59,7 +59,7 @@
           <tr th:each="row : ${rows}">
             <td th:text="${row.employeeName()}">Jane Doe</td>
             <td th:text="${row.leaveTypeName()}">Vacation</td>
-            <td class="text-end" th:text="${row.daysUsed()}">3</td>
+            <td class="text-end font-figure" th:text="${row.daysUsed()}">3</td>
             <td class="text-end" th:text="${row.requestCount()}">2</td>
           </tr>
         </tbody>

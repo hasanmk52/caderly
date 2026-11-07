@@ -35,7 +35,7 @@
               <label class="btn btn-outline-secondary btn-sm" th:for="${#ids.prev('leaveTypeId')}">
                 <i th:if="${type.icon != null}" th:class="'bi ' + ${type.icon}" aria-hidden="true"></i>
                 <span th:text="${type.name}">Vacation</span>
-                &middot; <span th:text="${type.remainingAfterPending}">18</span>/<span th:text="${type.granted}">30</span>
+                &middot; <span class="font-figure"><span th:text="${type.remainingAfterPending}">18</span>/<span th:text="${type.granted}">30</span></span>
               </label>
             </div>
           </div>
