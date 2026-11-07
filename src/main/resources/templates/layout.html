@@ -23,9 +23,11 @@
   </form>
 </div>
 <div th:replace="~{fragments/topbar :: topbar}"></div>
-<div class="d-flex">
+<div class="d-flex caderly-shell">
   <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-  <main id="main-content" class="flex-grow-1 p-4" th:replace="${content}"></main>
+  <!--/* <main> wraps the page content rather than being replaced by it, so every page keeps the
+         landmark and the skip link's #main-content target. */-->
+  <main id="main-content" class="flex-grow-1"><th:block th:replace="${content}"></th:block></main>
 </div>
 <!--/* Book Time Off modal (UI Guidelines §8.1) — global: the topbar CTA (fragments/topbar.html)
        is present on every page. Only #bookLeaveModalBody is swapped by htmx; the modal element

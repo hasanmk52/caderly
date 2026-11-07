@@ -35,8 +35,22 @@ body {
   margin: 0;
 }
 
-.caderly-sidebar {
-  min-width: 220px;
+/* The shell row fills the viewport under the 57px topbar, so the sidebar's white column runs to
+   the bottom of short pages instead of stopping under its last link. */
+.caderly-shell {
+  min-height: calc(100vh - 57px);
+}
+
+/* At md and up the sidebar sits inline. Bootstrap's .offcanvas-md resets it to a transparent,
+   borderless, growing flex item at that size, so the inline look is restored here. Below md it is
+   a normal offcanvas panel and Bootstrap's own styles apply. */
+@media (min-width: 768px) {
+  .caderly-sidebar.offcanvas-md {
+    flex-grow: 0;
+    min-width: 220px;
+    background-color: var(--bs-white) !important;
+    border-right: var(--bs-border-width) solid var(--bs-border-color) !important;
+  }
 }
 
 /* Every page's content div (id="content", flex-grow-1) is a flex item next to the
@@ -46,6 +60,7 @@ body {
    container (.calendar-scroll). min-width: 0 lets the flex item actually shrink to
    the available space, so the intended child scrollbar takes over instead. Harmless
    for every other page: this only permits shrinking, it doesn't force it. */
+#main-content,
 #content {
   min-width: 0;
 }

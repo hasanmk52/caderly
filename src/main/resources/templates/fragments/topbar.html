@@ -6,6 +6,10 @@
        without a logo it falls back to the tenant name as text. Mark SVG per
        design-system/assets/logo-kit-README.md's "Web lockup" pattern (caderly-mark-mono
        geometry, currentColor). -->
+  <button class="btn btn-sm d-md-none me-2 px-1" type="button" data-bs-toggle="offcanvas"
+          data-bs-target="#appSidebar" aria-controls="appSidebar" th:aria-label="#{topbar.open-navigation}">
+    <i class="bi bi-list fs-4" aria-hidden="true"></i>
+  </button>
   <span class="navbar-brand fw-semibold d-inline-flex align-items-center gap-2">
     <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"
          style="width: 1.15em; height: 1.15em; color: var(--bs-primary);">
@@ -22,11 +26,9 @@
       <span th:unless="${tenant.logoVersion != null}" class="fw-normal text-body-secondary" th:text="${tenant.name}">Acme</span>
     </th:block>
   </span>
-  <form class="d-none d-md-flex mx-auto" style="width: 40%" role="search">
-    <input class="form-control" type="search" th:placeholder="#{topbar.search-placeholder}"
-           th:aria-label="#{topbar.search-placeholder}" disabled />
-  </form>
-  <div class="d-flex align-items-center gap-3">
+  <!--/* No search box until global search exists (UI Guidelines §7.3): a disabled field that does
+         nothing took 40% of the bar. */-->
+  <div class="d-flex align-items-center gap-3 ms-auto">
     <button class="btn btn-primary btn-sm text-nowrap" type="button" data-bs-toggle="modal" data-bs-target="#bookLeaveModal"
             th:hx-get="@{/leave/new}" hx-target="#bookLeaveModalBody" hx-swap="innerHTML"
             th:text="#{topbar.book-time-off}">

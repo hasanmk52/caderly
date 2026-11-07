@@ -1,8 +1,18 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<nav th:fragment="sidebar" class="caderly-sidebar bg-white border-end p-3" th:aria-label="#{nav.primary-landmark-label}">
-  <ul class="nav nav-pills flex-column gap-1">
+<!--/* UI Guidelines §1: inline at md and up; below md the same element becomes a slide-in panel
+       (Bootstrap's responsive offcanvas), opened from the topbar's menu button. One nav list, so the
+       two never drift apart. */-->
+<div th:fragment="sidebar" class="offcanvas-md offcanvas-start caderly-sidebar" id="appSidebar" tabindex="-1"
+     aria-labelledby="appSidebarLabel">
+  <div class="offcanvas-header border-bottom d-md-none">
+    <h2 class="offcanvas-title h6 mb-0" id="appSidebarLabel" th:text="#{nav.menu}">Menu</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar"
+            th:aria-label="#{common.aria.close}"></button>
+  </div>
+  <nav class="offcanvas-body p-3" th:aria-label="#{nav.primary-landmark-label}">
+  <ul class="nav nav-pills flex-column gap-1 w-100">
     <li class="nav-item"><a class="nav-link" th:classappend="${activeNav == 'home'} ? 'active'" th:attr="aria-current=${activeNav == 'home'} ? 'page'" th:href="@{/}" th:text="#{nav.home}">Home</a></li>
     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
       <a class="nav-link" th:classappend="${activeNav == 'people'} ? 'active'" th:attr="aria-current=${activeNav == 'people'} ? 'page'" th:href="@{/admin/employees}" th:text="#{nav.people}">People</a>
@@ -40,6 +50,7 @@
       <a class="nav-link" th:classappend="${activeNav == 'reports'} ? 'active'" th:attr="aria-current=${activeNav == 'reports'} ? 'page'" th:href="@{/admin/reports}" th:text="#{nav.reports}">Reports</a>
     </li>
   </ul>
-</nav>
+  </nav>
+</div>
 </body>
 </html>
