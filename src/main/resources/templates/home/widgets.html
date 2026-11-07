@@ -11,7 +11,7 @@
   <div class="card-body">
     <div th:if="${#lists.isEmpty(leaveBalances)}" class="text-center text-muted py-3">
       <i class="bi bi-calendar-heart fs-3 d-block mb-2" aria-hidden="true"></i>
-      <p class="mb-0 small" th:text="#{home.widget.book-time-off.empty}">No leave types are set up yet.</p>
+      <p class="mb-0 small" th:text="${hasEmployee} ? #{home.widget.book-time-off.empty} : #{home.widget.book-time-off.no-record}">No leave types are set up yet.</p>
     </div>
     <div th:unless="${#lists.isEmpty(leaveBalances)}" class="d-flex flex-column gap-2">
       <button type="button" class="card border text-start w-100" th:each="balance : ${leaveBalances}"

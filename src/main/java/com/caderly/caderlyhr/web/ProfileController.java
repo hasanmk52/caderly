@@ -84,7 +84,10 @@ class ProfileController {
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     String ownProfile(@AuthenticationPrincipal AppUserPrincipal principal) {
-        return "redirect:/profile/" + ownEmployee(principal).requireId();
+        // A login with no employee record gets a page that says so, not a 404.
+        return employees.findByUserId(principal.userId())
+                .map(employee -> "redirect:/profile/" + employee.requireId())
+                .orElse("people/no-record");
     }
 
     @GetMapping("/profile/{id}")

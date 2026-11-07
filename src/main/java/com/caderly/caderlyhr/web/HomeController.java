@@ -121,9 +121,9 @@ class HomeController {
     @GetMapping("/widgets/book-time-off")
     @PreAuthorize("hasRole('EMPLOYEE')")
     String bookTimeOffWidget(@Nullable @AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        model.addAttribute(
-                "leaveBalances",
-                resolveEmployee(principal).map(e -> balanceCards(e.requireId())).orElse(List.of()));
+        var employee = resolveEmployee(principal);
+        model.addAttribute("hasEmployee", employee.isPresent());
+        model.addAttribute("leaveBalances", employee.map(e -> balanceCards(e.requireId())).orElse(List.of()));
         return "home/widgets :: bookTimeOff";
     }
 

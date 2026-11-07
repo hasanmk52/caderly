@@ -104,8 +104,8 @@ class LeaveApprovalE2ETest extends PlaywrightE2ETestBase {
     /**
      * The Admin needs a real linked {@link Employee}, not just a login: {@code PeopleFacade}'s
      * Admin-fallback lookup (routing a no-manager request) and {@code LeaveApprovalController}'s
-     * For Action page both resolve the acting Admin's employee record, and silently skip/404 an
-     * Admin login with none (see ADR 0010's "Admin login with no linked Employee" note) — a plain
+     * For Action page both resolve the acting Admin's employee record: the lookup skips an Admin
+     * login with none, and For Action shows it a "no employee record" state instead of approvals (see ADR 0010's "Admin login with no linked Employee" note) — a plain
      * {@code AppUser.active(...)} login-only account, as {@code LeaveConfigE2ETest}'s Admin uses,
      * is exactly that case and is not enough here.
      */
