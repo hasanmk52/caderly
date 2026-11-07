@@ -46,19 +46,12 @@ public class EmailTemplateService {
 
     String render(EmailEvent event, Map<String, Object> model) {
         Context context = new Context(EMAIL_LOCALE, model);
-        TenantBranding branding = brandingOrFallback();
-        context.setVariable("tenantName", branding.name());
-        context.setVariable("logoUrl", branding.logoUrl());
+        // No tenant in context: leave both unset so the chrome shows the Caderly wordmark alone.
+        if (TenantContext.get().isPresent()) {
+            TenantBranding branding = tenants.currentBranding();
+            context.setVariable("tenantName", branding.name());
+            context.setVariable("logoUrl", branding.logoUrl());
+        }
         return templateEngine.process(event.templatePath(), context);
-    }
-
-    /**
-     * Super Admin and system mail belongs to no tenant ({@code email_outbox.tenant_id} is
-     * nullable), so the chrome falls back to the product name rather than failing the send.
-     */
-    private TenantBranding brandingOrFallback() {
-        return TenantContext.get().isPresent()
-                ? tenants.currentBranding()
-                : new TenantBranding("Caderly", null);
     }
 }

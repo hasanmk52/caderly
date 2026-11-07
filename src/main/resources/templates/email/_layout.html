@@ -42,11 +42,11 @@
                 <!--/* Hairline divider then the tenant's own mark, when they have uploaded one.
                        The text fallback below it is what most tenants will show for a long time,
                        so it is designed rather than tolerated (BRAND.source.md §8.1). */-->
-                <td th:if="${logoUrl}" style="padding-left:14px;border-left:1px solid #E3E4E9;">
+                <td th:if="${tenantName != null and logoUrl != null}" style="padding-left:14px;border-left:1px solid #E3E4E9;">
                   <img th:src="${logoUrl}" th:alt="${tenantName}" height="20"
                        style="height:20px;display:block;border:0;" />
                 </td>
-                <td th:unless="${logoUrl}"
+                <td th:if="${tenantName != null and logoUrl == null}"
                     style="padding-left:14px;border-left:1px solid #E3E4E9;font-size:15px;color:#4A5160;"
                     th:text="${tenantName}">Acme</td>
               </tr>
@@ -64,7 +64,7 @@
 
         <tr>
           <td style="padding:16px 28px 22px;border-top:1px solid #E3E4E9;font-size:13px;color:#5F6675;"
-              th:text="#{email.common.footer(${tenantName})}">
+              th:text="${tenantName != null} ? #{email.common.footer(${tenantName})} : #{email.common.footer.system}">
             Sent by Acme via Caderly.
           </td>
         </tr>
