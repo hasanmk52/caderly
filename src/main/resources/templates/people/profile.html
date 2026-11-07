@@ -14,7 +14,7 @@
             <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3"
                  style="width: 96px; height: 96px; font-size: 2rem;"
                  th:text="${#strings.substring(employee.firstName,0,1)} + ${#strings.substring(employee.lastName,0,1)}">JD</div>
-            <h2 class="h5 mb-1" th:text="${employee.fullName}">Jane Doe</h2>
+            <h1 class="h5 mb-1" th:text="${employee.fullName}">Jane Doe</h1>
             <span class="badge mb-2"
                   th:classappend="${employee.status.name() == 'ACTIVE'} ? 'text-bg-success' : (${employee.status.name() == 'INVITED'} ? 'text-bg-warning' : 'text-bg-secondary')"
                   th:text="${employee.status.label}">Active</span>
