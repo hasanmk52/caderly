@@ -451,7 +451,8 @@ structure of a conventional SaaS landing page rather than the sidebar/topbar she
 - **Layout:** `templates/site-layout.html` only. Never mix the tenant `layout.html` (sidebar,
   topbar, Bootstrap JS) into a site page, or site styles into an app page.
 - **Styles:** `static/css/site.css`, standalone, no Bootstrap. It reuses the Caderly Design System
-  tokens (brand teal, ink scale, IBM Plex Sans for text, IBM Plex Mono for figures) declared at its
+  tokens (brand teal, ink scale, IBM Plex Sans for text, IBM Plex Mono for figures, IBM Plex Serif
+  300 Italic only for the brand's own sentences: the hero line and the footer tagline) declared at its
   `:root`. New colours or type sizes go into those tokens first, same rule as §16 question 3.
 - **Script:** `static/js/site.js`, plain DOM, progressive enhancement only — every form works with
   JavaScript off. No htmx or Alpine on the site. No inline script or `on*` attributes (CSP
