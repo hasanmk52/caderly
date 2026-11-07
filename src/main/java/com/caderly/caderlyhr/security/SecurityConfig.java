@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Clock;
 import java.time.Duration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -268,7 +269,8 @@ class SecurityConfig {
             AppUserDetailsService appUsers,
             PasswordEncoder passwordEncoder,
             SecurityContextRepository securityContextRepository,
-            LogoutHandler impersonationLogoutHandler)
+            LogoutHandler impersonationLogoutHandler,
+            @Value("${management.server.port:-1}") int managementPort)
             throws Exception {
         DaoAuthenticationProvider tenantAuthentication = new DaoAuthenticationProvider(appUsers);
         tenantAuthentication.setPasswordEncoder(passwordEncoder);
@@ -309,6 +311,8 @@ class SecurityConfig {
                                                 "/apple-touch-icon.png",
                                                 "/actuator/health",
                                                 "/error")
+                                        .permitAll()
+                                        .requestMatchers(prometheusOnManagementPort(managementPort))
                                         .permitAll()
                                         // Default-deny (CLAUDE.md §6 A01): anything not listed above needs
                                         // authentication, and @PreAuthorize decides the role on top of it.
@@ -352,5 +356,19 @@ class SecurityConfig {
         // CSRF stays at the Spring Security default (on, for every state-changing method). htmx
         // sends the token from the rendered form, so there is no reason to weaken this.
         return http.build();
+    }
+
+    /**
+     * The Prometheus scrape path, open only when the request arrived on the management port. That
+     * port is bound to loopback (docker-compose.yml) and never proxied, so a scraper on the host
+     * can read it with no credentials while the same path on the application port, which Caddy
+     * exposes, stays behind the default-deny rule. A port of zero or below (no separate management
+     * port configured) matches nothing.
+     */
+    static RequestMatcher prometheusOnManagementPort(int managementPort) {
+        return request ->
+                managementPort > 0
+                        && request.getLocalPort() == managementPort
+                        && "/actuator/prometheus".equals(request.getRequestURI());
     }
 }

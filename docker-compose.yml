@@ -1,0 +1,84 @@
+# App + reverse proxy only. PostgreSQL is installed natively on the host and reached on
+# localhost. Settings come from .env (see .env.production.example).
+#
+# Host networking: the containers share the server's network, so the app reaches Postgres on
+# localhost without opening it to anything else, and the app binds 127.0.0.1 only. Caddy is the
+# sole listener reachable from outside; a directly reachable app port would let a client forge
+# X-Forwarded-For. (Linux only; Docker Desktop on macOS does not support host networking.)
+x-logging: &logging
+  # Docker keeps container logs forever by default; cap them so a busy day cannot fill the disk.
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    network_mode: host
+    logging: *logging
+    environment:
+      SERVER_ADDRESS: 127.0.0.1
+      SERVER_PORT: ${APP_PORT:-8085}
+      # Actuator (health, Prometheus metrics) on its own loopback-only port, so Caddy never
+      # proxies it: scrape http://127.0.0.1:8086/actuator/prometheus from the host.
+      MANAGEMENT_SERVER_PORT: ${MANAGEMENT_PORT:-8086}
+      MANAGEMENT_SERVER_ADDRESS: 127.0.0.1
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/${DB_NAME:-caderly}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-caderly}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      SPRING_MAIL_HOST: ${SMTP_HOST:?set SMTP_HOST in .env}
+      SPRING_MAIL_PORT: ${SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SMTP_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
+      # A real provider (Brevo) needs a login and an encrypted channel; the Mailpit demo inbox
+      # accepts neither, so both default to off and the provider's .env turns them on.
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SMTP_AUTH:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: ${SMTP_STARTTLS:-false}
+      CADERLY_BASE_DOMAIN: ${CADERLY_BASE_DOMAIN:?set CADERLY_BASE_DOMAIN in .env}
+      CADERLY_EMAIL_FROM: ${CADERLY_EMAIL_FROM:?set CADERLY_EMAIL_FROM in .env}
+      CADERLY_EMPLOYEE_ENCRYPTION_KEY: ${CADERLY_EMPLOYEE_ENCRYPTION_KEY:?set CADERLY_EMPLOYEE_ENCRYPTION_KEY in .env}
+      CADERLY_SIGNUP_ENABLED: ${CADERLY_SIGNUP_ENABLED:-false}
+      CADERLY_SUPERADMIN_EMAIL: ${CADERLY_SUPERADMIN_EMAIL:-}
+      CADERLY_SUPERADMIN_PASSWORD: ${CADERLY_SUPERADMIN_PASSWORD:-}
+      CADERLY_SUPERADMIN_IP_ALLOWLIST: ${CADERLY_SUPERADMIN_IP_ALLOWLIST:-}
+      CADERLY_STORAGE_ROOT: /data/files
+    volumes:
+      # Host directory, owned by uid 65532 (the distroless nonroot user): see INSTALL.md.
+      - ${CADERLY_FILES_DIR:-/var/lib/caderly/files}:/data/files
+    mem_limit: 1536m
+
+  caddy:
+    build: deploy/caddy
+    restart: unless-stopped
+    network_mode: host
+    logging: *logging
+    depends_on:
+      - app
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+      CADERLY_BASE_DOMAIN: ${CADERLY_BASE_DOMAIN:?set CADERLY_BASE_DOMAIN in .env}
+      APP_PORT: ${APP_PORT:-8085}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN in .env}
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and the ACME account: losing this volume means re-issuing (rate limits).
+      - caddy_data:/data
+
+  # Demo-only catch-all inbox (`docker compose --profile demo up -d`): nothing is delivered, mail
+  # is read in the web UI, which listens on localhost only (reach it with an SSH tunnel to 8025).
+  # Use it by setting SMTP_HOST=localhost and SMTP_PORT=1025.
+  mailpit:
+    image: axllent/mailpit:v1.27@sha256:e22dce5b36f93c77082e204a3942fb6b283b7896e057458400a4c88344c3df68
+    profiles: [demo]
+    restart: unless-stopped
+    network_mode: host
+    logging: *logging
+    environment:
+      MP_SMTP_BIND_ADDR: 127.0.0.1:1025
+      MP_UI_BIND_ADDR: 127.0.0.1:8025
+
+volumes:
+  caddy_data:
