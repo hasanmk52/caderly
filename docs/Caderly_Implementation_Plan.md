@@ -58,7 +58,7 @@ Bootstrap the project skeleton, CI, and local dev experience so the first featur
 
 ## Phase 1 — MVP (12-14 weeks, L)
 
-**Objective:** Replace TalentHR free plan for MHZ's daily use, with full multi-tenant isolation and auditability.
+**Objective:** Replace TalentHR free plan for the first customer's daily use, with full multi-tenant isolation and auditability.
 
 ### 1.1 Multi-tenancy foundation (1 week)
 
@@ -479,14 +479,16 @@ Bootstrap the project skeleton, CI, and local dev experience so the first featur
 
 **Features:** Debian install guide, Docker Compose file (app + reverse proxy only — Postgres is native on the host), backup, TLS.
 
+**Status:** complete and proven on a demo server (decisions and deviations in ADR 0023). The first customer's production instance (Hetzner VPS, PostgreSQL 17) is still to be provisioned from `INSTALL.md`.
+
 **Tasks:**
 - Multi-stage Dockerfile with distroless JRE 25.
-- `docker-compose.yml` with `caderly-app` + `caddy` only. Postgres is installed natively on the Debian host via `apt install postgresql-17`. The app connects to `host.docker.internal:5432` (or the host's LAN IP) — documented in `INSTALL.md`.
-- Caddyfile with automatic TLS for `*.caderly.app`, the apex and `www` (the public site, 1.15).
-- Nightly `pg_dump` cron on the host, upload to off-site S3.
+- `docker-compose.yml` with `caderly-app` + `caddy` only. Postgres is installed natively on the Debian host via `apt install postgresql-17`. The containers use host networking, so the app connects to Postgres on `localhost:5432` and binds to `127.0.0.1` only (ADR 0023) — documented in `INSTALL.md`.
+- Caddyfile with automatic TLS for `*.caderly.app` and the apex (wildcard certificate through the Cloudflare DNS-01 challenge); `www` redirects to the apex (the public site, 1.15).
+- Nightly `pg_dump` cron on the host, taken as the `postgres` superuser because forced row-level security blocks the app role (ADR 0023); 30 local copies kept. Off-site S3 upload is supported by the script (`S3_URI`) but not yet configured.
 - `.env.example` documented (DB URL, DB user, DB password, SMTP, encryption key, etc. — no DB service inside compose).
-- `INSTALL.md` for MHZ Debian VPS: install Java tooling only if needed for admin scripts, install Postgres 17 via apt, create `caderly` role + `caderly` database, `pg_hba.conf` config for local + Docker bridge access, then `docker compose up -d`.
-- Prometheus scrape endpoint.
+- `INSTALL.md` for a Debian VPS: install Java tooling only if needed for admin scripts, install Postgres 17 via apt, create `caderly` role + `caderly` database (no `pg_hba.conf` change needed with host networking), then `docker compose up -d`.
+- Prometheus scrape endpoint, on a loopback-only management port (no collector installed yet).
 - Wildcard DNS setup guide, including apex and `www` records.
 - Optional Kubernetes / cloud variant documented separately: same image, external managed Postgres (RDS / Cloud SQL / Neon), same env vars — no code change.
 
@@ -494,7 +496,7 @@ Bootstrap the project skeleton, CI, and local dev experience so the first featur
 - `docker compose up` on a fresh Debian box (after Postgres is installed + DB created) works end-to-end.
 - Restore-from-backup drill documented and run once.
 
-**DoD:** MHZ instance running on a $10/mo Hetzner VPS with Postgres 17 native, Docker running `caderly-app` + `caddy`, wildcard TLS working for `mhz.caderly.app` (or the chosen domain).
+**DoD:** the first customer's instance running on a $10/mo Hetzner VPS with Postgres 17 native, Docker running `caderly-app` + `caddy`, wildcard TLS working for `acme.caderly.app` (or the chosen domain).
 
 **Complexity:** M. **Depends on:** everything above.
 
@@ -504,7 +506,7 @@ Bootstrap the project skeleton, CI, and local dev experience so the first featur
 
 - All PRD §6 (Functional Requirements) MVP items shipped.
 - Test suite: >70% line coverage; every acceptance criterion in §10 has an integration or E2E test.
-- MHZ can migrate off TalentHR: user CSV import script exists, leave balances entered.
+- The first customer can migrate off TalentHR: user CSV import script exists, leave balances entered.
 - Backup restore drill successful.
 - README + INSTALL guide complete.
 - Security review checklist run (OWASP Top 10 + tenant-isolation audit).
@@ -516,7 +518,7 @@ Bootstrap the project skeleton, CI, and local dev experience so the first featur
 Bridge phase before Phase 2 to lock down security and enable real migration.
 
 ### Objectives
-- Ship MFA for Admin accounts before real MHZ data lands.
+- Ship MFA for Admin accounts before real customer data lands.
 - Ship a CSV import for employees + historical leave balances.
 
 ### Features
@@ -540,7 +542,7 @@ Bridge phase before Phase 2 to lock down security and enable real migration.
 - Import rollback on error.
 
 ### DoD
-- MHZ Admins have MFA enabled.
+- The first customer's Admins have MFA enabled.
 - 10 employees imported from TalentHR export in one shot.
 
 ### Complexity: M. Depends on Phase 1.
@@ -602,7 +604,7 @@ Add the high-value features that TalentHR free lists but MVP skipped, plus quali
 
 ### DoD
 - Onboarding checklist assigned to new hire auto-generates tasks on hire date.
-- MHZ tenant runs with all Admins on SSO.
+- The first customer's tenant runs with all Admins on SSO.
 - Sample Arabic user reads full app RTL correctly.
 
 ### Complexity: L. Depends on Phase 1.
@@ -641,7 +643,7 @@ Add the module you flagged as the top post-MVP investment.
 - Complex state-machine coverage.
 
 ### DoD
-- MHZ runs its first quarterly review cycle in Caderly.
+- The first customer runs its first quarterly review cycle in Caderly.
 
 ### Complexity: L. Depends on Phase 2.
 
@@ -693,33 +695,6 @@ Prioritized based on customer demand — no fixed schedule.
 - API: OpenAPI auto-generated + published to `/api/docs`.
 - User guide (`docs/user/`): per role, one-page each, versioned.
 - Runbook (`docs/ops/`): common ops tasks (add tenant, restore backup, rotate key).
-
----
-
-## Sequencing rationale
-
-Why in this order?
-- **Phase 0** first because a working CI pipeline is a force-multiplier.
-- **1.1 (tenancy)** before anything user-visible because retrofitting tenancy is expensive and dangerous.
-- **1.2 (auth)** before any authenticated feature.
-- **1.3 → 1.4** in order because employees need departments.
-- **1.5 → 1.6** because leave depends on types + balances existing.
-- **1.10, 1.11** intentionally cheap and near end — they wrap existing features rather than create new ones.
-- **1.14 (dashboard customization)** slots in after the 1.10–1.13 wrap-up phases because it only rearranges the 1.9 widgets that already exist.
-- **1.16 (deploy)** last because you don't want to iterate on infra with no product to test it.
-- **Phase 1.5** inserted before Phase 2 to lock security and enable real MHZ migration.
-- **Phase 2** adds depth once the base is stable and you have real MHZ usage feedback.
-- **Phase 3** is your explicitly-flagged priority module.
-- **Phase 4** is demand-driven.
-
----
-
-## Risks specific to the plan
-
-- **Solo-dev burn rate.** 14+ weeks of focused MVP is real work on top of a day job. If MHZ pushes for a shorter timeline, cut Phase 1.12 (reports) and 1.13 (super admin console — do provisioning via SQL scripts) — saves ~1.5 weeks with acceptable pain.
-- **Getting stuck on tenant isolation edge cases.** Budget +1 week buffer in Phase 1.1; if it stretches, you've saved yourself weeks of debugging later.
-- **First-time Spring Boot 4 quirks.** SB 4 is 6 weeks old at project start; there may be documentation gaps. Fallback to SB 3.3 LTS if a blocker appears — API-compatible, minimal code change.
-- **Getting the leave duration algorithm wrong.** This is a deceptively tricky function (DST, year boundary, weekend variants, half-day combos). Time-box implementation to 3 days, write tests first, don't skip.
 
 ---
 

@@ -80,8 +80,7 @@ The app listens on `127.0.0.1:8085` only (`SERVER_ADDRESS` in `docker-compose.ym
 Caddy on the same machine can reach it. That matters: the app trusts the first `X-Forwarded-For`
 hop as the client address, and Caddy sets that header from the real peer. A directly reachable
 app port would let a client forge it and bypass the Super Admin IP allowlist and login rate
-limits. On a server where `firewalld` does not cover the public interface (an LXC container, for
-example), the provider's own firewall is what must allow 80 and 443; confirm from another
+limits. On a server where `firewalld` does not cover the public interface (some container or VM setups), the provider's own firewall is what must allow 80 and 443; confirm from another
 machine with `nc -z <server ip> 443`.
 
 Logs: `docker compose logs app` / `caddy`, kept by Docker under `/var/lib/docker/containers`
@@ -98,7 +97,7 @@ Open `https://caderly.app`. Flyway creates the schema on first start.
 
 ## 7. Backups
 
-`deploy/backup/backup.sh` writes a compressed `pg_dump`, checks it can be read back, keeps 14,
+`deploy/backup/backup.sh` writes a compressed `pg_dump`, checks it can be read back, keeps 30,
 and optionally copies it to S3. It runs as root and dumps as the `postgres` superuser: the app's
 own role is refused by `pg_dump` because every tenant table forces row-level security, and a
 superuser is exempt from it. No database password is needed.

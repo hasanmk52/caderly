@@ -63,7 +63,7 @@ phase's branding-merge work made it the natural point to look:
   migration that created it. No Java, CSS, or Thymeleaf code read it.
 - **Every row held a stale default.** The column's DB default was `#4f46e5` (Tailwind indigo-600),
   not the actual brand colour `#0F5568` (Caderly Petrol) that `theme-overrides.css` has used since
-  the brand was set — including MHZ's own seeded row.
+  the brand was set — including the first tenant's own seeded row.
 - **No Admin editor existed to set it**, so building the injection now would have produced a
   feature with no way to reach a non-default value — dead code with extra steps.
 - **`docs/design-system/guidelines/BRAND.source.md` §9.3 change #1** independently recommends

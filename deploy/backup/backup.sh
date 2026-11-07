@@ -3,12 +3,12 @@
 # `postgres` superuser over the local socket. The app's own role cannot do this, because every
 # tenant table has FORCE ROW LEVEL SECURITY (CLAUDE.md §5) and pg_dump as that role is refused;
 # a superuser bypasses RLS and sees every tenant's rows. No password is involved.
-# Keeps 14 local dumps; set S3_URI to also copy each one off-site.
+# Keeps 30 local dumps (PRD §19.8); set S3_URI to also copy each one off-site.
 set -euo pipefail
 
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/caderly}"
 DB_NAME="${DB_NAME:-caderly}"
-KEEP="${KEEP:-14}"
+KEEP="${KEEP:-30}"
 
 umask 077
 mkdir -p "$BACKUP_DIR"

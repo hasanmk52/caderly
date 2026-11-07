@@ -10,11 +10,11 @@
 
 ## 1. Executive Summary
 
-Caderly is a multi-tenant HRIS and Leave Management SaaS. It replaces MHZ Group's current use of TalentHR's free plan, then extends into a broader HR platform (performance reviews, onboarding checklists, deeper reporting).
+Caderly is a multi-tenant HRIS and Leave Management SaaS. It replaces a first customer's current use of TalentHR's free plan, then extends into a broader HR platform (performance reviews, onboarding checklists, deeper reporting).
 
 The MVP achieves feature parity with the TalentHR free plan for daily use: employee directory, employee profile, leave booking and approval, team calendar, company and personal documents, task/approval inbox, admin management of the tenant. It is designed from day one as a generic SaaS product: every company (tenant) is isolated by `tenant_id`, gets its own subdomain and branding, and configures its own leave policies, org units, and holiday calendar.
 
-The stack is a modular monolith on **Java 25 + Spring Boot 4.1**, server-rendered UI (**Thymeleaf + htmx + Alpine.js + Bootstrap 5**), and **PostgreSQL 17**, deployable as a Docker container to a Debian VPS (for MHZ) or any cloud (for future customers). Development is done and maintained by a single engineer (the author), so developer productivity, familiarity, and simplicity are first-class concerns; unnecessary complexity is a design smell.
+The stack is a modular monolith on **Java 25 + Spring Boot 4.1**, server-rendered UI (**Thymeleaf + htmx + Alpine.js + Bootstrap 5**), and **PostgreSQL 17**, deployable as a Docker container to a Debian VPS (for the first customer) or any cloud (for future customers). Development is done and maintained by a single engineer (the author), so developer productivity, familiarity, and simplicity are first-class concerns; unnecessary complexity is a design smell.
 
 ---
 
@@ -28,7 +28,7 @@ To be the HR system a small-to-mid-sized company actually enjoys using — fast,
 
 ### 3.1 Goals (MVP, ~3-4 months)
 
-- Replace TalentHR free plan for MHZ's 8-10 person team without regression in daily use.
+- Replace TalentHR free plan for the first customer's 8-10 person team without regression in daily use.
 - Fully generic multi-tenant SaaS: onboard a new tenant with 1 SQL row + 1 admin invite, no code changes.
 - Employee self-service: profile, leave booking, documents, calendar of teammates.
 - Manager tooling: approve leave, see team calendar, view direct reports.
@@ -36,7 +36,7 @@ To be the HR system a small-to-mid-sized company actually enjoys using — fast,
 - Configurable leave policy per tenant with tenant-specific holidays and weekends.
 - Email notifications for lifecycle events.
 - Baseline security: HTTPS everywhere, tenant isolation enforced in code + DB, encryption at rest, full audit log.
-- Deployable to a Debian VPS (MHZ) or any Docker-capable host in <10 minutes.
+- Deployable to a Debian VPS (first customer) or any Docker-capable host in <10 minutes.
 
 ### 3.2 Goals (12-24 months)
 
@@ -67,7 +67,7 @@ To be the HR system a small-to-mid-sized company actually enjoys using — fast,
 
 ## 4. Personas
 
-**Priya — Employee (30, Software Engineer at MHZ Dubai).**
+**Priya — Employee (30, Software Engineer at a Dubai company).**
 Wants to book leave in under a minute, see who's out this week, upload her renewed Emirates ID, and never think about HR software again. Uses mobile web on her phone from a cafe.
 
 **Rahul — Manager (40, Engineering Manager, 6 direct reports).**
@@ -635,7 +635,7 @@ Covered in §13. Additional detail:
 ### 19.1 Authentication
 - Passwords: BCrypt cost 12, min length 10, must have upper+lower+digit, blocked-common-passwords list. *(Composition rules shipped in 1.2. The blocklist is **not implemented** — a hand-written list is theatre at any size a human maintains, and the composition rules already exclude nearly everything such a list would contain. Needs either the HaveIBeenPwned range API or a bundled breach corpus; deferred as a decision in its own right, see ADR 0006 decision F.)*
 - Reset tokens: 32-byte cryptographic random, single-use, 24h TTL, stored hashed.
-- Session: **server-side HTTP session cookie** (`JSESSIONID`), `HttpOnly` + `Secure` + `SameSite=Lax`. Spring Security default. Idle timeout 8 h (configurable per tenant); absolute timeout 24 h. Session state stored in-JVM for the single-instance MHZ deployment; when we go multi-instance, swap in `spring-session-jdbc` and store sessions in Postgres — no application-code change. **Revocation** is immediate: password change, role change, or termination invalidates all sessions for that user by deleting them from the session store.
+- Session: **server-side HTTP session cookie** (`JSESSIONID`), `HttpOnly` + `Secure` + `SameSite=Lax`. Spring Security default. Idle timeout 8 h (configurable per tenant); absolute timeout 24 h. Session state stored in-JVM for the single-instance first-customer deployment; when we go multi-instance, swap in `spring-session-jdbc` and store sessions in Postgres — no application-code change. **Revocation** is immediate: password change, role change, or termination invalidates all sessions for that user by deleting them from the session store.
 - Lockout: 5 failures / 15 min per (email + IP).
 - MFA (TOTP): optional per user, enforceable per tenant for Admin role.
 
@@ -700,7 +700,7 @@ Covered in §13. Additional detail:
 - Postgres RLS (Row-Level Security) available as second line of defense.
 
 ### 20.3 Tenant resolution
-1. Request arrives at `mhz.caderly.app`.
+1. Request arrives at `acme.caderly.app`.
 2. `TenantResolutionFilter` (Spring Filter, first in chain) extracts subdomain, looks up tenant row by slug, and populates `TenantContext` (ThreadLocal → InheritableThreadLocal, plus contextual copy for reactive/async).
 3. `TenantContext` cleared in `finally` block to prevent leak between requests.
 4. If tenant not found → 404 with generic "Unknown tenant" page.
@@ -1411,8 +1411,8 @@ Observability: Actuator → Prometheus → Grafana (optional per deployment)
 Logs: JSON to stdout → captured by Docker or systemd journal
 ```
 
-**Deployment topology (MHZ, on-prem Debian):**
-- Single VPS. **PostgreSQL 17 installed natively** via `apt` on the host (not in a container — simpler backup, better perf, direct pg_dump). Docker Compose runs only 2 services: `caderly-app` (Spring Boot) and `caddy` (reverse proxy). The app container connects to the host Postgres via `host.docker.internal` or the Docker bridge gateway. LUKS-encrypted disk. Daily cron for `pg_dump`. `.env` for secrets (DB URL, credentials, encryption key, SMTP).
+**Deployment topology (first customer, on-prem Debian):**
+- Single VPS. **PostgreSQL 17 installed natively** via `apt` on the host (not in a container — simpler backup, better perf, direct pg_dump). Docker Compose runs only 2 services: `caderly-app` (Spring Boot) and `caddy` (reverse proxy). The containers use host networking: the app connects to the host Postgres on `localhost` and listens on `127.0.0.1` only, so Caddy is the sole externally reachable listener (ADR 0023). LUKS-encrypted disk. Daily cron for `pg_dump`. `.env` for secrets (DB URL, credentials, encryption key, SMTP).
 
 **Deployment topology (future cloud tenant):**
 - Same Docker image. RDS/Cloud SQL for Postgres. S3 for files. Application Load Balancer with wildcard cert. Optional: run 2 app replicas + ShedLock for scheduler safety.
@@ -1422,7 +1422,7 @@ Logs: JSON to stdout → captured by Docker or systemd journal
 ## 28. Future Enhancements (roadmap tail)
 
 - SSO: Google, Microsoft, Apple, SAML.
-- Custom domain per tenant (`hr.mhzgroup.com`).
+- Custom domain per tenant (`hr.example.com`).
 - Attendance / clock-in-out with mobile app.
 - Performance reviews module (OKRs, 1:1 notes, 360 reviews).
 - Onboarding/offboarding checklist templates & workflow engine.
@@ -1451,12 +1451,12 @@ Logs: JSON to stdout → captured by Docker or systemd journal
 |---|---|---|---|
 | Solo developer bus factor | High | High | Externalize documentation, keep architecture simple, invest in tests, publish repo internally. |
 | Tenant isolation bug leaks data | Low | Catastrophic | Defense in depth (filter + RLS + tests + code review). CI test suite fails on any cross-tenant read. |
-| Scope creep from MHZ users after MVP | Medium | Medium | Enforce backlog + phases. Add "phase 3+" queue in issue tracker; require ROI note on every new request. |
+| Scope creep from first-customer users after MVP | Medium | Medium | Enforce backlog + phases. Add "phase 3+" queue in issue tracker; require ROI note on every new request. |
 | Grails-to-Spring learning curve | Medium | Low-Medium | Concepts map cleanly; budget 2 weeks of ramp before starting real features. Book: "Spring Boot in Action". |
 | Free plan feature-parity moving target | Medium | Low | TalentHR could change features. Snapshot their free-plan spec now (screenshots + this PRD) and freeze scope. |
 | Email deliverability | Medium | Medium | Start with provider (Postmark/SES) with SPF/DKIM/DMARC properly configured. Never send from generic Gmail. |
 | Migration from TalentHR (data import) | Medium | Medium | Build CSV import for employees + leave balances first thing after core CRUD. |
-| Losing data before backups exist | Medium | High | Set up nightly pg_dump before ANY real MHZ data enters system. Restore drill within first month. |
+| Losing data before backups exist | Medium | High | Set up nightly pg_dump before ANY real customer data enters system. Restore drill within first month. |
 | Weak passwords on Admin accounts | Medium | High | Enforce MFA for Admins from Phase 1.5. |
 | Time zone bugs in leave duration | High (bug type) | Medium | Store all timestamps UTC; do all date math in tenant timezone; unit-test around DST, year boundary, week boundary. |
 | PDF/CSV report scale | Low | Low | For MVP volumes, materialized-view + Postgres is fine. Revisit if a tenant grows past 1000 employees. |
@@ -1465,8 +1465,8 @@ Logs: JSON to stdout → captured by Docker or systemd journal
 
 ### 29.2 Assumptions
 
-- MHZ has fewer than 20 employees for at least 12 months → single Spring Boot instance handles it trivially.
-- No hard SLA to external customers in year 1 (MHZ only + friendly pilots).
+- The first customer has fewer than 20 employees for at least 12 months → single Spring Boot instance handles it trivially.
+- No hard SLA to external customers in year 1 (first customer only + friendly pilots).
 - English UI is acceptable for launch even for UAE (Arabic in Phase 2).
 - Weekend definition is uniform across the whole tenant (no per-employee weekends).
 - Manager is a single person (no dotted-line matrix in MVP).
@@ -1475,7 +1475,7 @@ Logs: JSON to stdout → captured by Docker or systemd journal
 - No physical time-clock integration in MVP.
 - Tenant sub-domain DNS is manageable by us (wildcard *.caderly.app).
 - All tenants trust Caderly-provided storage; nobody insists on their own S3 bucket in MVP.
-- MHZ can provide test data and act as design partner.
+- The first customer can provide test data and act as design partner.
 - Spring Boot 4.1.0 remains stable through the MVP build cycle (released June 2026, LTS-track).
 
 ---

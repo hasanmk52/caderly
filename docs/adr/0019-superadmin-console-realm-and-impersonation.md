@@ -242,7 +242,7 @@ means "don't bootstrap," not a security gap. Otherwise, inside
 `TenantContext.runAsSystem("bootstrap super admin", ...)`, it checks `SuperAdminRepository
 .count() > 0` (simplest correct check — the table holds at most one row in practice) before
 inserting, making repeated application starts with the same env vars safe. This is the same
-mechanism used to create the first Super Admin in every environment (dev, MHZ prod, any future
+mechanism used to create the first Super Admin in every environment (dev, the first customer's production, any future
 pilot-tenant deployment) — not a one-off manual `INSERT` or a dev-only seeder.
 
 ### H. htmx + Spring MVC redirect gotcha (Task 6, UI-layer finding)

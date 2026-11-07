@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Caderly serves multiple tenants (MHZ Group plus a handful of pilot companies) from one deployment. At this scale, schema-per-tenant or database-per-tenant adds operational overhead (migrations × N, connection pool sizing, cross-tenant reporting complexity) without a corresponding benefit — see PRD §20.
+Caderly serves multiple tenants (a first customer plus a handful of pilot companies) from one deployment. At this scale, schema-per-tenant or database-per-tenant adds operational overhead (migrations × N, connection pool sizing, cross-tenant reporting complexity) without a corresponding benefit — see PRD §20.
 
 ## Decision
 

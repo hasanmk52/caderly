@@ -131,7 +131,7 @@ machinery than the honeypot it would complement.
 ### F. A seat limit for self-serve workspaces
 
 `tenant.seat_limit` (nullable `int`) caps the number of non-terminated employees. **NULL means
-unlimited**, which is what every existing tenant (MHZ) and every console-created tenant gets.
+unlimited**, which is what every existing tenant and every console-created tenant gets.
 Self-serve tenants are created with `caderly.signup.seat-limit` (50). `EmployeeService.create`
 refuses the next hire with `EMPLOYEE_SEAT_LIMIT_REACHED` once the count reaches the limit; the
 Super Admin can raise or clear it. Nullable rather than a default of 50 so that no existing tenant

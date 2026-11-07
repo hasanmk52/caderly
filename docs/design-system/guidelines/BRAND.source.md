@@ -4,7 +4,7 @@
 **Status:** Decided
 **Author:** Hasan Kagalwala
 **Date:** 2026-08-29
-**Owner:** MHZ Software
+**Owner:** Caderly
 **Supersedes:** Helyx brand concept (name retired — see §11)
 **Companion documents:** `Caderly_PRD.md`, `UI_Guidelines.md`, `CLAUDE.md`
 

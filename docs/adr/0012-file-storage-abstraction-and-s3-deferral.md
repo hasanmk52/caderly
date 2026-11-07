@@ -15,7 +15,7 @@ Phase 1.7 (`docs/CURRENT_PHASE.md`) adds Company Files (PRD §6.7 FR-7.1) and Em
 
 `storage.FileStorage` is a four-method interface (`store`, `open`, `delete`, and a `presignedUrl` default returning empty) implemented today only by `LocalFileStorage`, selected via `@ConditionalOnProperty(caderly.storage.backend=local, matchIfMissing=true)`.
 
-**S3FileStorage is not built this phase.** MHZ prod runs local-filesystem storage; no cloud tenant exists yet requiring S3. Building it now would mean adding `software.amazon.awssdk:s3` plus a LocalStack (or MinIO) Testcontainers module purely to exercise a code path nothing uses — the "no generic wrapper in case we need it later" anti-pattern CLAUDE.md §11 names explicitly. The `presignedUrl()` seam is deliberately shaped so a future S3 implementation drops in without any caller (`documents`, `web`) changing: the download controller checks it and redirects when present, streams via `open()` otherwise.
+**S3FileStorage is not built this phase.** The first customer's production runs local-filesystem storage; no cloud tenant exists yet requiring S3. Building it now would mean adding `software.amazon.awssdk:s3` plus a LocalStack (or MinIO) Testcontainers module purely to exercise a code path nothing uses — the "no generic wrapper in case we need it later" anti-pattern CLAUDE.md §11 names explicitly. The `presignedUrl()` seam is deliberately shaped so a future S3 implementation drops in without any caller (`documents`, `web`) changing: the download controller checks it and redirects when present, streams via `open()` otherwise.
 
 This satisfies FR-7.5's *abstraction* requirement — the application code never assumes a filesystem — without satisfying its *second backend* in the same phase.
 
