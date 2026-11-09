@@ -172,10 +172,10 @@ public class AuditAdminService {
     }
 
     /**
-     * What the table renders. {@code actorUserId} is shown as-is rather than resolved to an
-     * email: doing that would need {@code audit} to read {@code identity}, and {@code identity}
-     * already reads {@code audit} (the lockout re-key's failure count, ADR 0017) — resolving both
-     * directions would be a package cycle. An Admin can still trace the exact account from the id.
+     * One write as stored: ids, not names. Resolving {@code actorUserId} here would need {@code
+     * audit} to read {@code identity}, which already reads {@code audit} (the lockout re-key's
+     * failure count, ADR 0017), so it would be a package cycle; {@code web.AuditLogView} names
+     * the actor and the record for display instead.
      */
     public record AuditRow(
             UUID id,

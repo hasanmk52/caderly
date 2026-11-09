@@ -24,7 +24,7 @@ A multi-tenant HR information system with leave management. Each company gets it
 - **Time off:** configurable leave types, balances and holidays; leave requests with manager approval; a team calendar and a personal iCal feed.
 - **Documents:** company files and per-employee documents with strict upload validation.
 - **Home dashboard:** a per-user customisable home with an inbox of actions to take.
-- **Notifications and audit:** reliable email through a durable outbox, and an audit log of every write.
+- **Notifications and audit:** reliable email through a durable outbox, and an audit log of every write that names who changed what, and from what to what.
 - **Reports:** balances, leave utilisation (stacked bar per department) and headcount (monthly line), with CSV export.
 - **Operator console:** a separate Super Admin console (own login, IP allowlist) for provisioning, suspending and supporting workspaces.
 

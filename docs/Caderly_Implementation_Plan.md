@@ -361,12 +361,12 @@ Bootstrap the project skeleton, CI, and local dev experience so the first featur
 - Spring Security `AuthenticationEventPublisher` writes to `login_audit` on success/failure.
 
 **Frontend:**
-- Admin → Audit Log page: filter form + table + "view diff" modal (JSON pretty-print with react-json-view alternative? Or plain `<pre>`).
-- Admin → Login Audit page.
+- Admin → Audit Log page, Writes tab: filters by person, record type, action and dates. Each row shows the actor's name, the record in words (e.g. "Priya Nair · Vacation 2026") and a one-line change ("granted 28 → 30"); "view diff" opens the before/after JSON in a plain `<pre>`. Sign-in bookkeeping (an `AppUser` update that only stamps `lastLoginAt`) is hidden unless "Show sign-ins" is ticked.
+- Admin → Audit Log page, Login attempts tab.
 
 **Testing:** Every service method covered writes to audit. Test asserts audit for a compensation update.
 
-**DoD:** Admin can trace who changed what and when.
+**DoD:** Admin can trace who changed what and when, by name, not by id.
 
 **Complexity:** S. **Depends on:** 1.4.
 
