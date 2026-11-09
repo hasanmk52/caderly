@@ -52,7 +52,7 @@
         <p class="mb-0" th:text="#{superadmin.tenants.empty}">No tenants yet. Add one to get started.</p>
       </div>
 
-      <div th:unless="${#lists.isEmpty(tenantRows)}" class="table-responsive mb-5">
+      <div th:unless="${#lists.isEmpty(tenantRows)}" class="table-responsive" th:classappend="${totalPages > 1} ? 'mb-3' : 'mb-5'">
         <table class="table table-hover align-middle">
           <thead>
             <tr>
@@ -95,7 +95,7 @@
                         th:aria-label="${tenant.status() == 'SUSPENDED'} ? #{superadmin.tenants.aria.reinstate} : #{superadmin.tenants.aria.suspend}"
                         th:title="${tenant.status() == 'SUSPENDED'} ? #{superadmin.tenants.reinstate} : #{superadmin.tenants.suspend}"
                         th:if="${tenant.status() != 'DELETED'}"
-                        th:hx-patch="@{/superadmin/tenants/{id}/suspend(id=${tenant.id()})}"
+                        th:hx-patch="@{/superadmin/tenants/{id}/suspend(id=${tenant.id()}, page=${pageNumber})}"
                         hx-target="#tenant-list-content" hx-swap="outerHTML">
                   <i class="bi" th:classappend="${tenant.status() == 'SUSPENDED'} ? 'bi-play-circle' : 'bi-pause-circle'" aria-hidden="true"></i>
                 </button>
@@ -109,6 +109,21 @@
           </tbody>
         </table>
       </div>
+
+      <nav th:if="${totalPages > 1}" class="d-flex align-items-center gap-3 mb-5"
+           th:aria-label="#{superadmin.tenants.title}">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" th:classappend="${hasPrevious} ? '' : 'disabled'">
+            <a class="page-link" th:href="@{/superadmin/tenants(page=${pageNumber - 1})}"
+               th:text="#{common.pagination.previous}">Previous</a>
+          </li>
+          <li class="page-item" th:classappend="${hasNext} ? '' : 'disabled'">
+            <a class="page-link" th:href="@{/superadmin/tenants(page=${pageNumber + 1})}"
+               th:text="#{common.pagination.next}">Next</a>
+          </li>
+        </ul>
+        <span class="text-muted small" th:text="#{common.pagination.page-of(${pageNumber + 1}, ${totalPages})}">Page 1 of 3</span>
+      </nav>
 
       <div th:each="tenant : ${tenantRows}" th:if="${tenant.status() != 'DELETED'}" class="modal fade" tabindex="-1" aria-hidden="true"
            th:id="'logoTenant-' + ${tenant.id()}">
@@ -151,7 +166,7 @@
             <div class="modal-footer">
               <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" th:text="#{common.action.cancel}">Cancel</button>
               <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"
-                      th:hx-delete="@{/superadmin/tenants/{id}(id=${tenant.id()})}"
+                      th:hx-delete="@{/superadmin/tenants/{id}(id=${tenant.id()}, page=${pageNumber})}"
                       hx-target="#tenant-list-content" hx-swap="outerHTML"
                       th:text="#{superadmin.tenants.delete-submit}">
                 Delete tenant

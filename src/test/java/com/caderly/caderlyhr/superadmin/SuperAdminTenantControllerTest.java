@@ -259,7 +259,7 @@ class SuperAdminTenantControllerTest {
 
         assertThat(findTenantById(tenantId).getDeletedAt()).isNotNull();
         assertThat(tenantFacade.bySlug(slug)).isEmpty();
-        assertThat(tenantFacade.listAllForAdmin().stream().anyMatch(row -> row.id().equals(tenantId))).isTrue();
+        assertThat(tenantFacade.listForAdmin(0).stream().anyMatch(row -> row.id().equals(tenantId))).isTrue();
 
         AuditEntry deleteRow = onlyTenantAuditRow(tenantId, Action.DELETE);
         assertThat(deleteRow.actorUserId()).isEqualTo(superAdminId);

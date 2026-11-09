@@ -104,17 +104,20 @@ public interface TenantFacade {
      */
     void softDelete(UUID tenantId);
 
+    /** Rows per page of the Super Admin console's tenant list. */
+    int ADMIN_PAGE_SIZE = 25;
+
     /**
-     * Every tenant, active, suspended, or soft-deleted alike — the one place in the app that must
-     * see everything (Super Admin console's tenant list).
+     * One page of every tenant, active, suspended, or soft-deleted alike, newest first — the one
+     * place in the app that must see everything (Super Admin console's tenant list). Paged because
+     * each row costs the console one employee count under that tenant's own context.
      */
-    List<TenantAdminView> listAllForAdmin();
+    org.springframework.data.domain.Page<TenantAdminView> listForAdmin(int page);
 
     /**
      * A single tenant by id, active, suspended, or soft-deleted alike — the Super Admin console's
      * row lookup for the suspend/delete/impersonate actions, which land on one tenant rather than
-     * the whole list {@link #listAllForAdmin()} returns — a one-row read {@code
-     * listAllForAdmin()} doesn't conveniently give.
+     * a page of the list {@link #listForAdmin(int)} returns.
      */
     Optional<TenantAdminView> find(UUID tenantId);
 

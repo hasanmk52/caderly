@@ -140,17 +140,19 @@ class TenantServiceTest {
     }
 
     @Test
-    void listAllForAdmin_includesSuspendedAndSoftDeletedTenants() {
+    void listForAdmin_newestFirstOnAPageOf25_includingSuspendedAndSoftDeleted() {
         UUID activeId = tenantFacade.createTenant(uniqueSlug(), "Active Co", "UTC", 96, null);
         UUID suspendedId = tenantFacade.createTenant(uniqueSlug(), "Suspended Co", "UTC", 96, null);
         tenantFacade.suspend(suspendedId);
         UUID deletedId = tenantFacade.createTenant(uniqueSlug(), "Deleted Co", "UTC", 96, null);
         tenantFacade.softDelete(deletedId);
 
-        List<TenantFacade.TenantAdminView> all = tenantFacade.listAllForAdmin();
+        var page = tenantFacade.listForAdmin(0);
+        List<TenantFacade.TenantAdminView> all = page.getContent();
 
+        assertThat(page.getSize()).isEqualTo(TenantFacade.ADMIN_PAGE_SIZE);
         assertThat(all).extracting(TenantFacade.TenantAdminView::id)
-                .contains(activeId, suspendedId, deletedId);
+                .startsWith(deletedId, suspendedId, activeId);
         assertThat(all).filteredOn(v -> v.id().equals(suspendedId))
                 .singleElement()
                 .satisfies(v -> assertThat(v.suspended()).isTrue());

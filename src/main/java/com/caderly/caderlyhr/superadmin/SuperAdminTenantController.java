@@ -58,7 +58,7 @@ import tools.jackson.databind.ObjectMapper;
  * shared, controller-level transaction (this realm's threads never carry a resolved {@code
  * TenantContext} the way a tenant request would).
  *
- * <p>Every list/count read here runs under either {@link TenantFacade#listAllForAdmin()}'s own
+ * <p>Every list/count read here runs under either {@link TenantFacade#listForAdmin(int)}'s own
  * {@code runAsSystem} (the cross-tenant {@code tenant} table has no {@code tenant_id} to scope
  * by) or, for the per-tenant employee count, a real resolved {@link TenantContext} set one tenant
  * at a time — {@code employee} is RLS-protected, so {@code runAsSystem} alone would read zero rows
@@ -100,9 +100,9 @@ class SuperAdminTenantController {
 
     @GetMapping("/superadmin/tenants")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    String list(Model model) {
+    String list(@RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("tenantForm", blankForm());
-        populateTable(model);
+        populateTable(model, page);
         return "superadmin/tenants";
     }
 
@@ -142,7 +142,7 @@ class SuperAdminTenantController {
                 binding.rejectValue("slug", exception.errorCode(), errorDetail(exception));
             }
         }
-        populateTable(model);
+        populateTable(model, 0);
         model.addAttribute("openCreatePanel", true);
         return "superadmin/tenants";
     }
@@ -161,7 +161,7 @@ class SuperAdminTenantController {
      */
     @PatchMapping("/superadmin/tenants/{id}/suspend")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    String toggleSuspend(@PathVariable UUID id, Model model) {
+    String toggleSuspend(@PathVariable UUID id, @RequestParam(defaultValue = "0") int page, Model model) {
         TenantAdminView tenant = requireTenant(id);
         boolean suspending = !tenant.suspended();
         if (suspending) {
@@ -170,7 +170,7 @@ class SuperAdminTenantController {
             tenants.reinstate(id);
         }
         recordTenantAudit(id, Action.UPDATE, Map.of("suspended", suspending));
-        populateTable(model);
+        populateTable(model, page);
         return "superadmin/tenants :: content";
     }
 
@@ -208,10 +208,10 @@ class SuperAdminTenantController {
     /** Same fragment-response convention as {@link #toggleSuspend} — see its Javadoc. */
     @DeleteMapping("/superadmin/tenants/{id}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    String delete(@PathVariable UUID id, Model model) {
+    String delete(@PathVariable UUID id, @RequestParam(defaultValue = "0") int page, Model model) {
         tenants.softDelete(id);
         recordTenantAudit(id, Action.DELETE, Map.of("deleted", true));
-        populateTable(model);
+        populateTable(model, page);
         return "superadmin/tenants :: content";
     }
 
@@ -263,9 +263,14 @@ class SuperAdminTenantController {
         return "redirect:https://" + tenant.slug() + "." + baseDomain + SecurityPaths.IMPERSONATE_PATH + "?token=" + token;
     }
 
-    private void populateTable(Model model) {
-        List<TenantAdminView> all = tenants.listAllForAdmin();
-        model.addAttribute("tenantRows", all.stream().map(this::toRow).toList());
+    /** The page the operator is on; suspend and delete re-render that same page. */
+    private void populateTable(Model model, int page) {
+        var rows = tenants.listForAdmin(page);
+        model.addAttribute("tenantRows", rows.getContent().stream().map(this::toRow).toList());
+        model.addAttribute("pageNumber", rows.getNumber());
+        model.addAttribute("totalPages", Math.max(rows.getTotalPages(), 1));
+        model.addAttribute("hasPrevious", rows.hasPrevious());
+        model.addAttribute("hasNext", rows.hasNext());
     }
 
     /**

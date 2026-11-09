@@ -309,10 +309,16 @@ public class TenantService implements TenantFacade {
     }
 
     @Override
-    public List<TenantAdminView> listAllForAdmin() {
+    public org.springframework.data.domain.Page<TenantAdminView> listForAdmin(int page) {
+        var request = org.springframework.data.domain.PageRequest.of(
+                Math.max(page, 0),
+                ADMIN_PAGE_SIZE,
+                org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Order.desc("createdAt"),
+                        org.springframework.data.domain.Sort.Order.desc("id")));
         return TenantContext.runAsSystem(
-                "superadmin: list all tenants",
-                () -> repository.findAll().stream().map(TenantService::toAdminView).toList());
+                "superadmin: list tenants",
+                () -> repository.findAll(request).map(TenantService::toAdminView));
     }
 
     @Override
