@@ -1,6 +1,7 @@
 package com.caderly.caderlyhr.e2e;
 
 import com.caderly.caderlyhr.identity.AppUser;
+import com.caderly.caderlyhr.identity.AppUserDetailsService;
 import com.caderly.caderlyhr.identity.AppUserRepository;
 import com.caderly.caderlyhr.identity.Role;
 import com.caderly.caderlyhr.org.DepartmentService;
@@ -14,6 +15,7 @@ import com.caderly.caderlyhr.support.PlaywrightE2ETestBase;
 import com.caderly.caderlyhr.tenant.Tenant;
 import com.caderly.caderlyhr.tenant.TenantContext;
 import com.caderly.caderlyhr.tenant.TenantRepository;
+import com.caderly.caderlyhr.timeoff.BalanceService;
 import com.caderly.caderlyhr.timeoff.LeaveRequest;
 import com.caderly.caderlyhr.timeoff.LeaveRequestService;
 import com.caderly.caderlyhr.timeoff.LeaveTypeService;
@@ -36,6 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -46,7 +50,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * <pre>./mvnw test -Dtest=SiteScreenshotsE2ETest -DsiteScreenshots=true</pre>
  *
  * Seeds a fictional workspace whose names and dates match the site copy (Priya's vacation, Mon 3 –
- * Mon 10 Aug 2026, skipping the weekend and Eid al-Adha on Fri 7 Aug), crops three screens at 2×
+ * Mon 10 Aug 2026, skipping the weekend and Eid al-Adha on Fri 7 Aug), crops four screens at 2×
  * from a 600px-wide viewport so their text stays legible when scaled into a card,
  * and writes WebP files (via {@code cwebp}, which must be on the PATH) to {@code static/img/site/}.
  * It also refreshes the README's screenshots in {@code docs/screenshots/}.
@@ -69,6 +73,8 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
     @Autowired private PublicHolidayService holidays;
     @Autowired private LeaveRequestService leaveRequests;
     @Autowired private MutableClock clock;
+    @Autowired private BalanceService balances;
+    @Autowired private AppUserDetailsService userDetails;
 
     private final Map<String, UUID> departmentIds = new HashMap<>();
 
@@ -98,8 +104,33 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
         page.navigate(baseUrl + "/admin/reports/leave-utilization?from=2026-08-01&to=2026-08-31");
         shot(page.locator(".caderly-chart"), "site-report", 0);
 
+        auditShot(aishaEmail);
+
         readmeScreenshots(aishaEmail);
 
+    }
+
+    /**
+     * The audit card's crop: the two newest rows. Taken just below the sidebar breakpoint (768px),
+     * where the table has room for its columns; at 600px every cell wraps to three lines.
+     */
+    private void auditShot(String email) throws IOException, InterruptedException {
+        try (var context = page.context().browser().newContext(
+                new Browser.NewContextOptions().setViewportSize(767, 900).setDeviceScaleFactor(2))) {
+            Page audit = context.newPage();
+            audit.navigate(baseUrl + "/login");
+            audit.fill("#email", email);
+            audit.fill("#password", PASSWORD);
+            audit.click("button[type=submit]");
+            audit.waitForURL(baseUrl + "/");
+            audit.navigate(baseUrl + "/admin/audit-log");
+            // Who, Record and Change only: in a narrow card the When and Actions columns would
+            // shrink the text past reading.
+            BoundingBox who = audit.locator("#audit-content thead th").nth(1).boundingBox();
+            BoundingBox change = audit.locator("#audit-content thead th").nth(3).boundingBox();
+            BoundingBox second = audit.locator("#audit-content tbody tr").nth(1).boundingBox();
+            shot(audit, new Clip(who.x, who.y, change.x + change.width - who.x, second.y + second.height - who.y), "site-audit");
+        }
     }
 
     /** The README's 1280×800 screens, from the same fictional workspace (no real data in docs). */
@@ -168,11 +199,39 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
             approve(book(omar, sick, LocalDate.of(2026, 8, 12), LocalDate.of(2026, 8, 12), null), aisha, true);
             approve(book(lena, sick, LocalDate.of(2026, 8, 25), LocalDate.of(2026, 8, 26), null), rahul, false);
             approve(book(daniel, sick, LocalDate.of(2026, 8, 27), LocalDate.of(2026, 8, 27), null), aisha, true);
+
+            // Screens are captured "on" Tue 11 Aug, in the middle of the seeded month.
+            clock.advance(Duration.ofDays(9));
+            // The audit card's newest rows, written as signed-in people so the log names them. The
+            // request is in September, outside the calendar and report crops.
+            LeaveRequest sarasTrip = as(sara, () -> book(sara, vacation, LocalDate.of(2026, 9, 14), LocalDate.of(2026, 9, 15), null));
+            clock.advance(Duration.ofMinutes(40));
+            as(rahul, () -> approve(sarasTrip, rahul, false));
+            clock.advance(Duration.ofHours(2));
+            as(aisha, () -> balances.adjustManually(
+                    priya.requireId(), vacation, new BigDecimal("15"), "Carried over from 2025", aisha.email()));
         } finally {
             TenantContext.clear();
         }
-        // Screens are captured "on" Tue 11 Aug, in the middle of the seeded month.
-        clock.advance(Duration.ofDays(9));
+    }
+
+    /** Runs {@code write} with {@code who} signed in, as a request would, so the audit names them. */
+    private <T> T as(Employee who, java.util.function.Supplier<T> write) {
+        var principal = userDetails.loadUserByUsername(who.email());
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
+        try {
+            return write.get();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    private void as(Employee who, Runnable write) {
+        as(who, () -> {
+            write.run();
+            return null;
+        });
     }
 
     private Employee person(
@@ -209,6 +268,11 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
                 request.requireId(), decider.userId(), decider.requireId(), decider.fullName(), deciderIsAdmin, null);
     }
 
+    private void shot(Page page, Clip clip, String name) throws IOException, InterruptedException {
+        page.screenshot(new Page.ScreenshotOptions().setPath(PNG_DIR.resolve(name + ".png")).setClip(clip));
+        toWebp(name);
+    }
+
     /** Element screenshot at 2×; {@code maxWidth} > 0 crops the element's left part only. */
     private void shot(Locator element, String name, int maxWidth) throws IOException, InterruptedException {
         element.waitFor();
@@ -221,6 +285,11 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
         } else {
             element.screenshot(new Locator.ScreenshotOptions().setPath(png));
         }
+        toWebp(name);
+    }
+
+    private void toWebp(String name) throws IOException, InterruptedException {
+        Path png = PNG_DIR.resolve(name + ".png");
         Path webp = WEBP_DIR.resolve(name + ".webp");
         Process cwebp = new ProcessBuilder("cwebp", "-quiet", "-q", "82", png.toString(), "-o", webp.toString())
                 .inheritIO()
