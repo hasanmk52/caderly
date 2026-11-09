@@ -36,9 +36,12 @@
           <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/audit-log}">
             <input type="hidden" name="tab" value="writes" />
             <div class="col-auto">
-              <label class="form-label" for="filter-entity-type" th:text="#{admin.audit-log.filter.entity-type}">Entity type</label>
-              <input class="form-control" type="text" id="filter-entity-type" name="entityType"
-                     th:value="${selectedEntityType}" placeholder="Employee" data-auto-submit />
+              <label class="form-label" for="filter-entity-type" th:text="#{admin.audit-log.filter.entity-type}">Record</label>
+              <select class="form-select" id="filter-entity-type" name="entityType" data-auto-submit>
+                <option value="" th:text="#{admin.audit-log.filter.all-kinds}">All records</option>
+                <option th:each="option : ${kindOptions}" th:value="${option.value()}"
+                        th:selected="${option.value() == selectedEntityType}" th:text="${option.label()}">Leave balance</option>
+              </select>
             </div>
             <div class="col-auto">
               <label class="form-label" for="filter-action" th:text="#{admin.audit-log.filter.action}">Action</label>
@@ -50,9 +53,13 @@
               </select>
             </div>
             <div class="col-auto">
-              <label class="form-label" for="filter-actor" th:text="#{admin.audit-log.filter.actor}">Actor user ID</label>
-              <input class="form-control" type="text" id="filter-actor" name="actorUserId"
-                     th:value="${selectedActorUserId}" data-auto-submit />
+              <label class="form-label" for="filter-actor" th:text="#{admin.audit-log.filter.actor}">Person</label>
+              <select class="form-select" id="filter-actor" name="actorUserId" data-auto-submit>
+                <option value="" th:text="#{admin.audit-log.filter.all-people}">Everyone</option>
+                <option th:each="option : ${actorOptions}" th:value="${option.value()}"
+                        th:selected="${selectedActorUserId != null and option.value() == selectedActorUserId.toString()}"
+                        th:text="${option.label()}">Aisha Rahman</option>
+              </select>
             </div>
             <div class="col-auto">
               <label class="form-label" for="filter-from" th:text="#{admin.audit-log.filter.from}">From</label>
@@ -63,6 +70,15 @@
               <label class="form-label" for="filter-to" th:text="#{admin.audit-log.filter.to}">To</label>
               <input class="form-control" type="date" id="filter-to" name="to"
                      th:value="${selectedTo}" data-auto-submit />
+            </div>
+            <!--/* Sign-ins stamp the user record; they are on the Login attempts tab already
+                   (AuditAdminService.notSignInBookkeeping), so they are opt-in here. */-->
+            <div class="col-auto">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="filter-sign-ins" name="includeSignIns" value="true"
+                       th:checked="${includeSignIns}" data-auto-submit />
+                <label class="form-check-label" for="filter-sign-ins" th:text="#{admin.audit-log.filter.include-sign-ins}">Show sign-ins</label>
+              </div>
             </div>
           </form>
 
@@ -76,24 +92,24 @@
               <thead>
                 <tr>
                   <th scope="col" th:text="#{admin.audit-log.table.occurred}">When</th>
-                  <th scope="col" th:text="#{admin.audit-log.table.actor}">Actor</th>
-                  <th scope="col" th:text="#{admin.audit-log.table.entity}">Entity</th>
-                  <th scope="col" th:text="#{admin.audit-log.table.action}">Action</th>
+                  <th scope="col" th:text="#{admin.audit-log.table.actor}">Who</th>
+                  <th scope="col" th:text="#{admin.audit-log.table.entity}">Record</th>
+                  <th scope="col" th:text="#{admin.audit-log.table.change}">Change</th>
                   <th scope="col" class="text-end text-nowrap" th:text="#{common.table.actions}">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr th:each="row : ${rows}">
-                  <td class="text-nowrap font-figure small" th:text="${@fmt.dateTime(row.occurredAt())}">Sep 15, 2026 09:12</td>
+                  <td class="text-nowrap font-date small" th:text="${@fmt.dateTime(row.occurredAt())}">Sep 15, 2026 09:12</td>
                   <td>
-                    <span class="badge bg-secondary-subtle text-secondary-emphasis" th:text="${row.actorRole()}">ADMIN</span>
-                    <span class="text-muted small text-nowrap" th:if="${row.actorUserId() != null}" th:text="${row.actorUserId()}">…</span>
+                    <span th:text="${row.actor()}">Aisha Rahman</span>
+                    <span th:if="${row.role() != null}" class="badge bg-secondary-subtle text-secondary-emphasis ms-1" th:text="${row.role()}">Admin</span>
                   </td>
                   <td>
-                    <span th:text="${row.entityType()}">Employee</span>
-                    <span class="text-muted small" th:if="${row.entityId() != null}" th:text="'#' + ${row.entityId()}">#…</span>
+                    <span class="d-block" th:if="${!#strings.isEmpty(row.label())}" th:text="${row.label()}">Priya Nair · Vacation 2026</span>
+                    <span class="text-muted small" th:text="${row.kind()}">Leave balance</span>
                   </td>
-                  <td th:text="#{|admin.audit-log.action.${#strings.toLowerCase(row.action())}|}">Update</td>
+                  <td th:text="${row.change()}">granted 28 → 30</td>
                   <td class="text-end">
                     <button th:if="${row.hasDiff()}" type="button" class="btn btn-outline-secondary btn-sm"
                             data-bs-toggle="modal" data-bs-target="#auditDiffModal"
@@ -113,12 +129,12 @@
             <ul class="pagination pagination-sm mb-0">
               <li class="page-item" th:classappend="${hasPrevious} ? '' : 'disabled'">
                 <a class="page-link"
-                   th:href="@{/admin/audit-log(tab='writes', entityType=${selectedEntityType}, action=${selectedAction}, actorUserId=${selectedActorUserId}, from=${selectedFrom}, to=${selectedTo}, page=${pageNumber - 1})}"
+                   th:href="@{/admin/audit-log(tab='writes', entityType=${selectedEntityType}, action=${selectedAction}, actorUserId=${selectedActorUserId}, from=${selectedFrom}, to=${selectedTo}, includeSignIns=${includeSignIns ? true : null}, page=${pageNumber - 1})}"
                    th:text="#{common.pagination.previous}">Previous</a>
               </li>
               <li class="page-item" th:classappend="${hasNext} ? '' : 'disabled'">
                 <a class="page-link"
-                   th:href="@{/admin/audit-log(tab='writes', entityType=${selectedEntityType}, action=${selectedAction}, actorUserId=${selectedActorUserId}, from=${selectedFrom}, to=${selectedTo}, page=${pageNumber + 1})}"
+                   th:href="@{/admin/audit-log(tab='writes', entityType=${selectedEntityType}, action=${selectedAction}, actorUserId=${selectedActorUserId}, from=${selectedFrom}, to=${selectedTo}, includeSignIns=${includeSignIns ? true : null}, page=${pageNumber + 1})}"
                    th:text="#{common.pagination.next}">Next</a>
               </li>
             </ul>
@@ -168,7 +184,7 @@
               </thead>
               <tbody>
                 <tr th:each="row : ${loginRows}">
-                  <td class="text-nowrap font-figure small" th:text="${@fmt.dateTime(row.occurredAt())}">Sep 15, 2026 09:12</td>
+                  <td class="text-nowrap font-date small" th:text="${@fmt.dateTime(row.occurredAt())}">Sep 15, 2026 09:12</td>
                   <td th:text="${row.emailAttempted()}">priya@acme.test</td>
                   <td>
                     <span class="badge"

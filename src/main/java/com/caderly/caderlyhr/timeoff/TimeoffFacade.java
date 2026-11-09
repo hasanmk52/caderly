@@ -3,7 +3,9 @@ package com.caderly.caderlyhr.timeoff;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
@@ -55,6 +57,13 @@ public interface TimeoffFacade {
      * first GROUP BY query.
      */
     List<UtilizationSummary> summarizeUtilization(LocalDate from, LocalDate to, @Nullable UUID leaveTypeId);
+
+    /**
+     * The leave type of each given balance or request id that still exists in this tenant — the
+     * audit log's labels need it because an audit snapshot leaves out the {@code leaveType}
+     * association. Ids that match nothing are simply absent from the map.
+     */
+    Map<UUID, String> leaveTypeNamesByRecordId(Collection<UUID> recordIds);
 
     record EmployeeBalanceInfo(
             UUID employeeId,

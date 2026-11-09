@@ -114,7 +114,7 @@
           </thead>
           <tbody>
             <tr th:each="row : ${rows}">
-              <td class="text-nowrap font-figure small" th:text="${@fmt.dateTime(row.createdAt())}">Sep 15, 2026 09:12</td>
+              <td class="text-nowrap font-date small" th:text="${@fmt.dateTime(row.createdAt())}">Sep 15, 2026 09:12</td>
               <td th:text="${row.toEmail()}">priya@acme.test</td>
               <td th:text="${row.subject()}">Your Vacation request was approved</td>
               <td th:text="${row.event() == null} ? '—' : #{|admin.notifications.event.${row.event().templateKey()}|}">Leave approved</td>

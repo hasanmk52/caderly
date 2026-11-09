@@ -3,9 +3,18 @@ package com.caderly.caderlyhr.web;
 import com.caderly.caderlyhr.audit.AuditAdminService;
 import com.caderly.caderlyhr.audit.LoginAuditAdminService;
 import com.caderly.caderlyhr.audit.system.AuditEntry.Action;
+import com.caderly.caderlyhr.identity.AppUser;
+import com.caderly.caderlyhr.identity.InviteService;
+import com.caderly.caderlyhr.people.PeopleFacade;
+import com.caderly.caderlyhr.people.PeopleFacade.EmployeeName;
+import com.caderly.caderlyhr.timeoff.TimeoffFacade;
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,10 +42,24 @@ class AdminAuditController {
 
     private final AuditAdminService audits;
     private final LoginAuditAdminService logins;
+    private final InviteService users;
+    private final PeopleFacade people;
+    private final TimeoffFacade timeoff;
+    private final AuditLogView view;
 
-    AdminAuditController(AuditAdminService audits, LoginAuditAdminService logins) {
+    AdminAuditController(
+            AuditAdminService audits,
+            LoginAuditAdminService logins,
+            InviteService users,
+            PeopleFacade people,
+            TimeoffFacade timeoff,
+            AuditLogView view) {
         this.audits = audits;
         this.logins = logins;
+        this.users = users;
+        this.people = people;
+        this.timeoff = timeoff;
+        this.view = view;
     }
 
     @GetMapping
@@ -47,6 +70,7 @@ class AdminAuditController {
             @RequestParam(required = false) @Nullable Action action,
             @RequestParam(required = false) @Nullable UUID actorUserId,
             @RequestParam(required = false) @Nullable Boolean success,
+            @RequestParam(defaultValue = "false") boolean includeSignIns,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Nullable LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Nullable LocalDate to,
             @RequestParam(defaultValue = "0") int page,
@@ -57,7 +81,7 @@ class AdminAuditController {
         if ("logins".equals(tab)) {
             addLoginLog(model, success, from, to, page);
         } else {
-            addWriteLog(model, entityType, action, actorUserId, from, to, page);
+            addWriteLog(model, entityType, action, actorUserId, from, to, includeSignIns, page);
         }
         return "admin/audit-log";
     }
@@ -76,9 +100,18 @@ class AdminAuditController {
             @Nullable UUID actorUserId,
             @Nullable LocalDate from,
             @Nullable LocalDate to,
+            boolean includeSignIns,
             int page) {
-        var rows = audits.list(entityType, action, actorUserId, from, to, page);
-        model.addAttribute("rows", rows.getContent());
+        var rows = audits.list(entityType, action, actorUserId, from, to, includeSignIns, page);
+        // Each lookup is one query for the whole page, never one per row.
+        Map<UUID, String> emails = users.listUsers().stream().collect(Collectors.toMap(AppUser::requireId, AppUser::email));
+        List<EmployeeName> employees = people.listEmployeeNames();
+        var lookups = new AuditLogView.Lookups(
+                emails, employees, timeoff.leaveTypeNamesByRecordId(AuditLogView.leaveRecordIds(rows.getContent())));
+        model.addAttribute("rows", view.rows(rows.getContent(), lookups));
+        model.addAttribute("actorOptions", actorOptions(emails, employees));
+        model.addAttribute("kindOptions", view.kindOptions());
+        model.addAttribute("includeSignIns", includeSignIns);
         model.addAttribute("pageNumber", rows.getNumber());
         model.addAttribute("totalPages", Math.max(rows.getTotalPages(), 1));
         model.addAttribute("hasPrevious", rows.hasPrevious());
@@ -89,6 +122,17 @@ class AdminAuditController {
         model.addAttribute("selectedActorUserId", actorUserId);
         model.addAttribute("selectedFrom", from);
         model.addAttribute("selectedTo", to);
+    }
+
+    /** Every login, by its employee's name where it has one, for the "Person" filter. */
+    private static List<AuditLogView.Option> actorOptions(Map<UUID, String> emails, List<EmployeeName> employees) {
+        Map<UUID, String> names = new HashMap<>(emails);
+        employees.stream().filter(e -> e.userId() != null && names.containsKey(e.userId()))
+                .forEach(e -> names.put(e.userId(), e.fullName()));
+        return names.entrySet().stream()
+                .map(entry -> new AuditLogView.Option(entry.getKey().toString(), entry.getValue()))
+                .sorted(Comparator.comparing(AuditLogView.Option::label, String.CASE_INSENSITIVE_ORDER))
+                .toList();
     }
 
     private void addLoginLog(

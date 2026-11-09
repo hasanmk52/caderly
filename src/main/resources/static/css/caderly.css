@@ -41,15 +41,21 @@
   src: url("/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
 }
 
-/* BRAND §6: Plex Mono for anything a machine produced or a person compares down a column —
-   balances, durations, tenure, timestamps. Tabular figures so columns line up. */
 /* An email wraps at the @ when its column is narrow, never mid-word (profile summary card). */
 .caderly-email > span:last-child {
   display: inline-block;
 }
 
+/* BRAND §6: Plex Mono for numbers a person compares down a column — balances, durations,
+   tenure, report totals. Tabular figures so columns line up. */
 .font-figure {
   font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dates and times stay in the text face: in Mono a date beside a name reads as a different
+   kind of thing. Tabular digits still keep a column of them aligned. */
+.font-date {
   font-variant-numeric: tabular-nums;
 }
 

@@ -108,7 +108,7 @@ and matches `docs/design-system/guidelines/BRAND.source.md` §9.3's explicit rec
   - `micro`: 0.75 rem / 500 uppercase tracked — badge labels only
 - **Line height:** 1.5 for body, 1.25 for headings.
 - **Weight:** 400 default, 500 for emphasis, 600 for headings and interactive labels (nav, buttons). Do not use 700+.
-- **Figures:** IBM Plex Mono (400/500, vendored beside Plex Sans, BRAND §6) via the `.font-figure` utility in `caderly.css` for balances, durations, tenure, report number columns and timestamps: anything a person compares down a column. Running text stays in Plex Sans.
+- **Figures:** IBM Plex Mono (400/500, vendored beside Plex Sans, BRAND §6) via the `.font-figure` utility in `caderly.css` for balances, durations, tenure and report number columns: numbers a person compares down a column. Dates and timestamps stay in Plex Sans with tabular digits (`.font-date`), so a date beside a name reads as one line of text. Running text stays in Plex Sans.
 
 ---
 

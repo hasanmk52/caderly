@@ -4,7 +4,10 @@ import com.caderly.caderlyhr.tenant.TenantFacade;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
@@ -112,5 +115,17 @@ class TimeoffFacadeImpl implements TimeoffFacade {
                 request.startHalfDayPm(),
                 request.endHalfDayAm(),
                 request.durationDays());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<UUID, String> leaveTypeNamesByRecordId(Collection<UUID> recordIds) {
+        Map<UUID, String> names = new HashMap<>();
+        if (recordIds.isEmpty()) {
+            return names;
+        }
+        leaveBalances.findAllById(recordIds).forEach(b -> names.put(b.requireId(), b.leaveType().name()));
+        leaveRequests.findAllById(recordIds).forEach(r -> names.put(r.requireId(), r.leaveType().name()));
+        return names;
     }
 }

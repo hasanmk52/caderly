@@ -378,6 +378,27 @@ class PeopleFacadeImplTest extends TenantIsolationTestBase {
                 EmployeeStatusHistory.open(employee, EmployeeStatus.ACTIVE, EmploymentType.FULL_TIME, effectiveFrom));
     }
 
+    @Test
+    void listEmployeeNames_includesTerminatedAndTheLinkedUser_onlyInTheCurrentTenant() {
+        UUID userId = asTenant(tenantA, () -> appUsers.save(AppUser.active(uniqueEmail(), "hash"))).getId();
+        Employee linked = asTenant(tenantA, () -> {
+            Employee e = saveEmployee("Aisha", "Rahman", null);
+            e.linkUser(userId);
+            return employees.save(e);
+        });
+        Employee gone = asTenant(tenantA, () -> {
+            Employee e = saveEmployee("Karim", "Saleh", null);
+            e.changeStatus(EmployeeStatus.TERMINATED);
+            return employees.save(e);
+        });
+        asTenant(tenantB, () -> saveEmployee("Other", "Tenant", null));
+
+        assertThat(asTenant(tenantA, () -> peopleFacade.listEmployeeNames()))
+                .containsExactlyInAnyOrder(
+                        new PeopleFacade.EmployeeName(linked.requireId(), userId, "Aisha Rahman"),
+                        new PeopleFacade.EmployeeName(gone.requireId(), null, "Karim Saleh"));
+    }
+
     private Employee saveEmployee(String firstName, String lastName, Department department) {
         Employee employee = Employee.create(firstName, lastName, uniqueEmail());
         employee.updateAdminFields(

@@ -63,6 +63,7 @@ public class AuditAdminService {
             @Nullable UUID actorUserId,
             @Nullable LocalDate from,
             @Nullable LocalDate to,
+            boolean includeSignIns,
             int page) {
         UUID tenantId = TenantContext.require();
         ZoneId zone = tenants.currentTimezone();
@@ -74,7 +75,8 @@ public class AuditAdminService {
                                 .and(withEntityType(entityType))
                                 .and(withAction(action))
                                 .and(withActor(actorUserId))
-                                .and(occurredBetween(fromInstant, toInstant)),
+                                .and(occurredBetween(fromInstant, toInstant))
+                                .and(notSignInBookkeeping(includeSignIns)),
                         PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by(Sort.Direction.DESC, "occurredAt")))
                 .map(row -> AuditRow.of(row, zone));
     }
@@ -130,6 +132,29 @@ public class AuditAdminService {
     private static Specification<AuditEntry> withActor(@Nullable UUID actorUserId) {
         return (root, query, builder) ->
                 actorUserId == null ? builder.conjunction() : builder.equal(root.get("actorUserId"), actorUserId);
+    }
+
+    /**
+     * A sign-in stamps {@code AppUser.lastLoginAt}, which the listener records as an update like any
+     * other. Those rows repeat the Login attempts tab, so the Writes tab drops an AppUser update
+     * whose snapshots are equal once that stamp is removed. Done in SQL, not after paging, so every
+     * page stays full; {@code jsonb_delete} is the function behind Postgres's {@code jsonb - text}.
+     * A lockout changes {@code lockedUntil} and therefore always stays visible.
+     */
+    private static Specification<AuditEntry> notSignInBookkeeping(boolean includeSignIns) {
+        return (root, query, builder) -> {
+            if (includeSignIns) {
+                return builder.conjunction();
+            }
+            var before = builder.function("jsonb_delete", String.class, root.get("beforeJson"),
+                    builder.literal("lastLoginAt"), builder.literal("updatedAt"));
+            var after = builder.function("jsonb_delete", String.class, root.get("afterJson"),
+                    builder.literal("lastLoginAt"), builder.literal("updatedAt"));
+            return builder.not(builder.and(
+                    builder.equal(root.get("entityType"), "AppUser"),
+                    builder.equal(root.get("action"), Action.UPDATE),
+                    builder.equal(before, after)));
+        };
     }
 
     private static Specification<AuditEntry> occurredBetween(

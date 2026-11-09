@@ -124,6 +124,14 @@ class PeopleFacadeImpl implements PeopleFacade {
 
     @Override
     @Transactional(readOnly = true)
+    public List<EmployeeName> listEmployeeNames() {
+        return employees.findAll().stream()
+                .map(e -> new EmployeeName(e.requireId(), e.userId(), e.fullName()))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<EmployeeContact> listActiveEmployeeContacts() {
         return employees.findAllByStatusNot(EmployeeStatus.TERMINATED).stream()
                 .map(e -> new EmployeeContact(e.requireId(), e.fullName(), e.email()))

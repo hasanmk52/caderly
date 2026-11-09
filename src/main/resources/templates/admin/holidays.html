@@ -51,7 +51,7 @@
           </thead>
           <tbody>
             <tr th:each="holiday : ${holidays}">
-              <td class="font-figure" th:text="${@fmt.date(holiday.date)}">Thu 1 Jan 2026</td>
+              <td class="font-date" th:text="${@fmt.date(holiday.date)}">Thu 1 Jan 2026</td>
               <td>
                 <i class="bi bi-calendar-heart" aria-hidden="true"></i>
                 <span th:text="${holiday.name()}">New Year's Day</span>
