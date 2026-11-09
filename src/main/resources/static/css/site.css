@@ -202,33 +202,23 @@ h2.title { margin: 0; font-size: var(--fs-h2); line-height: 1.1; letter-spacing:
 .tag .warn { font-size: var(--fs-2xs); color: var(--notice); }
 .tag-left { left: calc(50% - 260px); top: 36px; }
 .tag-right { left: calc(50% + 105px); top: 92px; }
+/* A real product screenshot (SiteScreenshotsE2ETest), top-anchored like .panel and cropped by
+   the card's overflow:hidden. Width/height attributes keep its aspect ratio, so no layout shift. */
+.vignette .shot { position: absolute; left: 0; right: 0; top: 22px; margin: 0 auto; display: block; width: min(100%, 420px); height: auto; border: 1px solid var(--rule); border-radius: var(--radius-panel); box-shadow: var(--shadow-card); background: var(--card); }
+.feature.wide .vignette .shot { width: min(100%, 520px); }
 .panel { position: absolute; left: 0; right: 0; top: 22px; margin: 0 auto; max-width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius-panel); box-shadow: var(--shadow-card); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-.panel .row { display: flex; align-items: center; gap: 10px; }
 .panel .panel-title { font-size: var(--fs-xs); font-weight: 600; }
+.panel .row { display: flex; align-items: center; gap: 10px; }
 .panel .panel-meta { font-size: var(--fs-2xs); color: var(--ink-3); }
 .panel .panel-entry { font-size: var(--fs-2xs); line-height: 1.4; }
-.panel .badge { font-size: var(--fs-2xs); font-weight: 600; color: var(--brand); border: 1px solid var(--brand-line); border-radius: 6px; padding: 3px 8px; }
 .medium { font-weight: 500; }
 .panel .avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
-.panel .note { font-size: var(--fs-2xs); color: var(--ink-2); background: var(--brand-fill); border-radius: 6px; padding: 6px 8px; }
-.panel .actions { display: flex; gap: 8px; }
-.panel .act { flex: 1; text-align: center; font-size: var(--fs-xs); font-weight: 600; border-radius: 6px; padding: 7px 0; }
-.panel .act.go { color: var(--on-brand); background: var(--brand); }
-.panel .act.no { color: var(--ink); border: 1px solid var(--field); padding: 6px 0; }
-.week { display: grid; grid-template-columns: 34px repeat(7, minmax(0, 1fr)); gap: 6px 4px; align-items: center; font-family: var(--mono); font-size: var(--fs-label); color: var(--ink-3); }
-.week .d { text-align: center; }
-.week .we { color: var(--mute); }
-.week .off { height: 18px; background: #F3F4F6; border-radius: 4px; }
-.week .bar { height: 18px; border-radius: 9px; }
-.week .s2 { grid-column: span 2; }
-.week .s3 { grid-column: span 3; }
-.week img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+.panel .badge { font-size: var(--fs-2xs); font-weight: 600; color: var(--brand); border: 1px solid var(--brand-line); border-radius: 6px; padding: 3px 8px; }
+
 .bars { display: flex; align-items: flex-end; gap: 14px; height: 96px; padding-top: 4px; border-bottom: 1px solid var(--rule); }
 .bars span { flex: 1; background: var(--brand); border-radius: 4px 4px 0 0; }
 .bar-labels { display: flex; gap: 14px; font-size: var(--fs-label); color: var(--ink-3); }
 .bar-labels span { flex: 1; text-align: center; }
-.pill-ical { right: 10px; top: 150px; }
-.pill { position: absolute; background: var(--card); border: 1px solid var(--rule); border-radius: 999px; padding: 7px 12px; font-size: var(--fs-2xs); font-weight: 500; box-shadow: var(--shadow-tag); }
 
 /* arithmetic */
 .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 56px; align-items: center; }
@@ -453,7 +443,6 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   .chip-approval { right: 0; top: auto; bottom: 14%; }
   .feature { padding: 24px 24px 0; }
   .vignette { height: 168px; }
-  .pill-ical { top: 128px; }
   /* Portrait moves right and the tags stack on the left, so no tag sits over a face. */
   .vignette .portrait { left: auto; right: 0; transform: none; width: 140px; height: 140px; bottom: -20px; }
   .tag-left { left: 0; top: 12px; }
