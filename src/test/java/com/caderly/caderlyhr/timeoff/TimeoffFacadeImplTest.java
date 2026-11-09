@@ -293,6 +293,23 @@ class TimeoffFacadeImplTest extends TenantIsolationTestBase {
     // leave_request.employee_id carries a real FK to employee(id) (V202608171000), even though
     // the JPA entity models it as a plain UUID (timeoff never navigates a people.Employee
     // relation) — so tests need an actual saved Employee row, not an arbitrary UUID.
+    @Test
+    void leaveTypeNamesByRecordId_resolvesBalancesAndRequests_onlyInTheCurrentTenant() {
+        LeaveType vacation = asTenant(tenantA, () -> saveLeaveType("Vacation"));
+        LeaveType sick = asTenant(tenantA, () -> saveLeaveType("Sick"));
+        UUID employeeId = asTenant(tenantA, this::saveEmployeeId);
+        UUID balanceId = asTenant(tenantA, () -> leaveBalances.save(
+                LeaveBalance.grant(employeeId, vacation, 2026, new BigDecimal("20"))).requireId());
+        UUID requestId = asTenant(tenantA, () -> savePendingRequest(
+                employeeId, sick, MONTH_START.plusDays(7), MONTH_START.plusDays(8)).requireId());
+        UUID unknown = UUID.randomUUID();
+
+        assertThat(asTenant(tenantA, () -> timeoff.leaveTypeNamesByRecordId(java.util.List.of(balanceId, requestId, unknown))))
+                .containsOnly(java.util.Map.entry(balanceId, "Vacation"), java.util.Map.entry(requestId, "Sick"));
+        assertThat(asTenant(tenantB, () -> timeoff.leaveTypeNamesByRecordId(java.util.List.of(balanceId, requestId))))
+                .isEmpty();
+    }
+
     private UUID saveEmployeeId() {
         return employees
                 .save(Employee.create("Test", "Employee", "employee-" + UUID.randomUUID() + "@example.test"))

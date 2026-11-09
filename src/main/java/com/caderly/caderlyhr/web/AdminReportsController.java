@@ -8,6 +8,7 @@ import com.caderly.caderlyhr.reports.ReportService;
 import com.caderly.caderlyhr.reports.ReportService.HeadcountRow;
 import com.caderly.caderlyhr.reports.ReportService.LeaveBalanceRow;
 import com.caderly.caderlyhr.reports.ReportService.UtilizationRow;
+import com.caderly.caderlyhr.timeoff.LeaveType;
 import com.caderly.caderlyhr.timeoff.LeaveTypeService;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +17,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -44,12 +47,15 @@ class AdminReportsController {
     private final OrgFacade org;
     private final LeaveTypeService leaveTypes;
     private final Clock clock;
+    private final MessageSource messages;
 
-    AdminReportsController(ReportService reports, OrgFacade org, LeaveTypeService leaveTypes, Clock clock) {
+    AdminReportsController(
+            ReportService reports, OrgFacade org, LeaveTypeService leaveTypes, Clock clock, MessageSource messages) {
         this.reports = reports;
         this.org = org;
         this.leaveTypes = leaveTypes;
         this.clock = clock;
+        this.messages = messages;
     }
 
     @GetMapping("/admin/reports")
@@ -124,6 +130,14 @@ class AdminReportsController {
                 reports.leaveUtilizationReport(effectiveFrom, effectiveTo, departmentId, leaveTypeId);
         addOrgAndLeaveTypeOptions(model);
         model.addAttribute("rows", rows);
+        // Colours follow the tenant's full leave-type list, not the filtered rows (PRD FR-10.2).
+        model.addAttribute(
+                "chart",
+                ReportCharts.utilization(
+                        rows,
+                        leaveTypes.listAll().stream().map(LeaveType::name).toList(),
+                        messages.getMessage("admin.reports.chart.no-department", null, LocaleContextHolder.getLocale()),
+                        messages.getMessage("admin.reports.chart.other", null, LocaleContextHolder.getLocale())));
         model.addAttribute("selectedDepartmentId", departmentId);
         model.addAttribute("selectedLeaveTypeId", leaveTypeId);
         model.addAttribute("selectedFrom", effectiveFrom);
@@ -173,6 +187,7 @@ class AdminReportsController {
         model.addAttribute("departmentOptions", org.listActiveDepartments());
         model.addAttribute("employmentTypeOptions", EmploymentType.values());
         model.addAttribute("rows", rows);
+        model.addAttribute("chart", ReportCharts.headcount(rows));
         model.addAttribute("selectedDepartmentId", departmentId);
         model.addAttribute("selectedEmploymentType", employmentType);
         model.addAttribute("selectedFrom", effectiveFrom);

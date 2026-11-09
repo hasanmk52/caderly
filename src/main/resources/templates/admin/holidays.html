@@ -4,8 +4,24 @@
 <th:block th:replace="~{layout :: layout(#{admin.holidays.title}, ~{::#content})}">
   <div id="content" class="flex-grow-1 p-4">
 
-    <div class="d-flex justify-content-between align-items-start mb-4">
-      <h1 th:text="#{admin.holidays.heading}">Public Holidays</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+      <h1 class="mb-0" th:text="#{admin.holidays.heading}">Public Holidays</h1>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <form th:hx-post="@{/admin/holidays/upload}"
+              hx-target="#holidays-content" hx-swap="outerHTML" hx-encoding="multipart/form-data"
+              class="d-flex align-items-center gap-2">
+          <input class="form-control form-control-sm" type="file" name="file" accept=".csv" required
+                 th:aria-label="#{admin.holidays.upload-input-aria-label}" />
+          <button type="submit" class="btn btn-outline-primary btn-sm text-nowrap">
+            <i class="bi bi-upload" aria-hidden="true"></i> <span th:text="#{admin.holidays.upload-csv}">Upload CSV</span>
+          </button>
+        </form>
+        <button type="button" class="btn btn-primary btn-sm text-nowrap"
+                th:hx-get="@{/admin/holidays/new-form}"
+                hx-target="#holidayOffcanvasBody" hx-swap="innerHTML">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i> <span th:text="#{admin.holidays.add}">Add Holiday</span>
+        </button>
+      </div>
     </div>
 
     <!--/* Mirrors admin/organization.html's #organization-content pattern (see
@@ -17,23 +33,6 @@
         <ul class="mb-0">
           <li th:each="error : ${uploadErrors}" th:text="${error}">Line 3: bad date</li>
         </ul>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <button type="button" class="btn btn-primary btn-sm"
-                th:hx-get="@{/admin/holidays/new-form}"
-                hx-target="#holidayOffcanvasBody" hx-swap="innerHTML">
-          <i class="bi bi-plus-lg" aria-hidden="true"></i> <span th:text="#{admin.holidays.add}">Add Holiday</span>
-        </button>
-        <form th:hx-post="@{/admin/holidays/upload}"
-              hx-target="#holidays-content" hx-swap="outerHTML" hx-encoding="multipart/form-data"
-              class="d-flex align-items-center gap-2">
-          <input class="form-control form-control-sm" type="file" name="file" accept=".csv" required
-                 th:aria-label="#{admin.holidays.upload-input-aria-label}" />
-          <button type="submit" class="btn btn-outline-primary btn-sm text-nowrap">
-            <i class="bi bi-upload" aria-hidden="true"></i> <span th:text="#{admin.holidays.upload-csv}">Upload CSV</span>
-          </button>
-        </form>
       </div>
 
       <div th:if="${#lists.isEmpty(holidays)}" class="text-center text-muted py-5 mb-5">
@@ -52,7 +51,7 @@
           </thead>
           <tbody>
             <tr th:each="holiday : ${holidays}">
-              <td th:text="${holiday.date}">2026-01-01</td>
+              <td class="font-date" th:text="${@fmt.date(holiday.date)}">Thu 1 Jan 2026</td>
               <td>
                 <i class="bi bi-calendar-heart" aria-hidden="true"></i>
                 <span th:text="${holiday.name()}">New Year's Day</span>

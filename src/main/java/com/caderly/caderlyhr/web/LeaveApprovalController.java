@@ -63,7 +63,11 @@ class LeaveApprovalController {
         // here to do); Tasks is only the default for a plain Employee, who has no approvals pane
         // at all — see for-action.html's th:classappend on both panes/pills.
         model.addAttribute("isApprover", isApprover);
-        if (isApprover) {
+        // An approver login with no employee record can't act as a decider (resolveDecider needs
+        // one), so the approvals pane shows that state instead of failing the whole page.
+        boolean noRecord = isApprover && employees.findByUserId(principal.userId()).isEmpty();
+        model.addAttribute("noRecord", noRecord);
+        if (isApprover && !noRecord) {
             Decider decider = resolveDecider(principal);
             model.addAttribute(
                     "pending",
@@ -152,7 +156,7 @@ class LeaveApprovalController {
                             decider.name(),
                             decider.isAdmin(),
                             form.decisionNote());
-            toast(response, "toast.leave-request.rejected", "Request rejected");
+            toast(response, "toast.leave-request.rejected", "Request declined");
             addPendingAndCompleted(model, fresh, principal.userId());
             return "leave/for-action :: pendingListAndCounts";
         }

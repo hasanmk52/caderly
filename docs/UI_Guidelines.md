@@ -108,6 +108,7 @@ and matches `docs/design-system/guidelines/BRAND.source.md` §9.3's explicit rec
   - `micro`: 0.75 rem / 500 uppercase tracked — badge labels only
 - **Line height:** 1.5 for body, 1.25 for headings.
 - **Weight:** 400 default, 500 for emphasis, 600 for headings and interactive labels (nav, buttons). Do not use 700+.
+- **Figures:** IBM Plex Mono (400/500, vendored beside Plex Sans, BRAND §6) via the `.font-figure` utility in `caderly.css` for balances, durations, tenure and report number columns: numbers a person compares down a column. Dates and timestamps stay in Plex Sans with tabular digits (`.font-date`), so a date beside a name reads as one line of text. Running text stays in Plex Sans.
 
 ---
 
@@ -128,9 +129,9 @@ Prefer: `mb-2` (0.5rem), `mb-3` (1rem), `mb-4` (1.5rem), `mb-5` (3rem). Same sca
 ## 5. Iconography
 
 - **Primary icon set:** Bootstrap Icons (`bi-*`), already in classpath via WebJar.
-- **Empty-state illustrations:** use unDraw (public domain SVG). Store under `src/main/resources/static/img/empty/` and reference by name. No custom illustration commissioning in MVP.
+- **Empty states:** a Bootstrap Icon at `fs-1`, muted (see §7.1). No illustrations.
 - **Leave-type icons:** each `LeaveType` has an icon name field (e.g., `bi-palm`, `bi-bandaid`, `bi-calendar-heart`). Rendered wherever the type appears, colored per `LeaveType.color`.
-- **Sizing:** icons inline with text = `1em`, standalone icons in cards = `1.25rem`, empty-state illustrations = `240 px` wide.
+- **Sizing:** icons inline with text = `1em`, standalone icons in cards = `1.25rem`, empty-state icons = `fs-1`.
 
 ---
 
@@ -221,13 +222,30 @@ Existing code in `people/list.html`, `people/profile.html`, `admin/users.html`, 
 
 ---
 
+### Charts (reports)
+- **No chart library.** Charts are server-rendered from view models in `web.ReportCharts`: HTML
+  bars, and an SVG line whose axis text is HTML so it never shrinks on phones. Markup lives in
+  `fragments/charts.html`; tooltips are `caderly.js`'s `[data-chart-tip]` handler (hover and focus).
+- **Categorical palette** (`--chart-1..6` in `caderly.css`): `#0C86AB`, `#E8703A`, `#6A5AD0`,
+  `#24A37A`, `#B38A0E`, `#DB6A97`, validated on the white card (colour-blind separation, normal-vision
+  floor, contrast). A series keeps its slot under any filter: slots follow the tenant's full,
+  name-ordered list, and a 7th series or more folds into grey "Other" (`--chart-0`). Never reuse
+  the status colours for a series, and re-validate before changing a hex.
+- **A single series** (headcount) is brand petrol: 2px line, ~10% area wash, ringed end dot.
+- **Marks and chrome:** bars at most 24px thick with a 4px rounded end and a 2px gap between stacked
+  segments; hairline solid gridlines; text in ink tokens, figures in Plex Mono; a legend whenever
+  there are two or more series; values only at bar ends and the line's end.
+- **Accessibility:** the chart is `role="img"` with a one-sentence summary; the table below it
+  stays the full data view; every mark is keyboard-focusable with the same tooltip text.
+
 ## 7. Data patterns
 
 ### 7.1 Empty states
 Every collection view (People, Files, Documents, Time-off history, Tasks, Approvals, Reports) must have a designed empty state. Never show an empty table or a bare "No results."
 
 Structure:
-1. Centered unDraw illustration (240 px wide, opacity 0.85).
+1. Centered Bootstrap Icon (`fs-1`, muted), the same pattern on every page. unDraw art was planned
+   but never adopted; icons keep empty states consistent and cost nothing to maintain.
 2. `h3` explanatory title ("No documents yet").
 3. One-line supporting text ("Upload employment docs like contracts, IDs, certifications.").
 4. Primary action button ("Upload document").
@@ -451,7 +469,8 @@ structure of a conventional SaaS landing page rather than the sidebar/topbar she
 - **Layout:** `templates/site-layout.html` only. Never mix the tenant `layout.html` (sidebar,
   topbar, Bootstrap JS) into a site page, or site styles into an app page.
 - **Styles:** `static/css/site.css`, standalone, no Bootstrap. It reuses the Caderly Design System
-  tokens (brand teal, ink scale, IBM Plex Sans for text, IBM Plex Mono for figures) declared at its
+  tokens (brand teal, ink scale, IBM Plex Sans for text, IBM Plex Mono for figures, IBM Plex Serif
+  300 Italic only for the brand's own sentences: the hero line and the footer tagline) declared at its
   `:root`. New colours or type sizes go into those tokens first, same rule as §16 question 3.
 - **Script:** `static/js/site.js`, plain DOM, progressive enhancement only — every form works with
   JavaScript off. No htmx or Alpine on the site. No inline script or `on*` attributes (CSP

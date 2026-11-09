@@ -125,7 +125,15 @@ public interface PeopleFacade {
     List<MonthlyHeadcount> countActiveEmployeesByMonth(
             LocalDate from, LocalDate to, @Nullable UUID departmentId, @Nullable EmploymentType employmentType);
 
+    /**
+     * Every employee's name, any status, with the login it is linked to — {@code web}'s audit log
+     * names actors and records with it, and history must still name someone who has left.
+     */
+    List<EmployeeName> listEmployeeNames();
+
     record EmployeeContact(UUID employeeId, String fullName, String email) {}
+
+    record EmployeeName(UUID employeeId, @Nullable UUID userId, String fullName) {}
 
     record EmployeeReportInfo(
             UUID employeeId,

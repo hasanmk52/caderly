@@ -4,8 +4,13 @@
 <th:block th:replace="~{layout :: layout(#{nav.people}, ~{::#content})}">
   <div id="content" class="flex-grow-1 p-4">
 
-    <div class="d-flex justify-content-between align-items-start mb-4">
-      <h1 th:text="#{nav.people}">People</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+      <h1 class="mb-0" th:text="#{nav.people}">People</h1>
+      <button type="button" class="btn btn-primary btn-sm"
+              th:hx-get="@{/admin/employees/new-form}"
+              hx-target="#employeeOffcanvasBody" hx-swap="innerHTML">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> <span th:text="#{admin.employees.add}">Add Employee</span>
+      </button>
     </div>
 
     <!--/* Mirrors admin/organization.html's #organization-content pattern: everything a
@@ -28,13 +33,6 @@
             <option th:each="option : ${statusOptions}" th:value="${option}" th:text="${option.label}"
                     th:selected="${option == selectedStatus}">Active</option>
           </select>
-        </div>
-        <div class="col-auto ms-auto">
-          <button type="button" class="btn btn-primary btn-sm"
-                  th:hx-get="@{/admin/employees/new-form}"
-                  hx-target="#employeeOffcanvasBody" hx-swap="innerHTML">
-            <i class="bi bi-plus-lg" aria-hidden="true"></i> <span th:text="#{admin.employees.add}">Add Employee</span>
-          </button>
         </div>
       </form>
 

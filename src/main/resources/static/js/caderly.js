@@ -296,4 +296,48 @@
       }
     }
   });
+
+  // Report chart tooltips (fragments/charts.html): one floating label for any [data-chart-tip]
+  // mark, on hover and on keyboard focus. textContent only, since department and leave-type
+  // names are tenant data. Without JavaScript each mark still has its aria-label and the table.
+  var chartTip = null;
+  function showChartTip(target) {
+    var text = target.getAttribute("data-chart-tip");
+    if (!text) {
+      return;
+    }
+    if (!chartTip) {
+      chartTip = document.createElement("div");
+      chartTip.className = "caderly-chart-tip";
+      chartTip.setAttribute("role", "presentation");
+      document.body.appendChild(chartTip);
+    }
+    chartTip.textContent = text;
+    chartTip.hidden = false;
+    var box = target.getBoundingClientRect();
+    var left = box.left + box.width / 2 + window.scrollX - chartTip.offsetWidth / 2;
+    var maxLeft = document.documentElement.clientWidth - chartTip.offsetWidth - 8;
+    chartTip.style.left = Math.max(8, Math.min(left, maxLeft)) + "px";
+    chartTip.style.top = box.top + window.scrollY - chartTip.offsetHeight - 8 + "px";
+  }
+  function hideChartTip() {
+    if (chartTip) {
+      chartTip.hidden = true;
+    }
+  }
+  ["mouseover", "focusin"].forEach(function (type) {
+    document.addEventListener(type, function (event) {
+      var mark = event.target.closest && event.target.closest("[data-chart-tip]");
+      if (mark) {
+        showChartTip(mark);
+      }
+    });
+  });
+  ["mouseout", "focusout"].forEach(function (type) {
+    document.addEventListener(type, function (event) {
+      if (event.target.closest && event.target.closest("[data-chart-tip]")) {
+        hideChartTip();
+      }
+    });
+  });
 })();

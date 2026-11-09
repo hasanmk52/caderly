@@ -11,12 +11,15 @@ public enum LeaveRequestStatus {
     REJECTED,
     CANCELLED;
 
-    /** Display label for UI status badges. */
+    /**
+     * Display label for UI status badges. REJECTED reads "Declined" (BRAND §3.2): same stored value,
+     * a kinder word to read about a colleague.
+     */
     public String label() {
         return switch (this) {
             case PENDING -> "Pending";
             case APPROVED -> "Approved";
-            case REJECTED -> "Rejected";
+            case REJECTED -> "Declined";
             case CANCELLED -> "Cancelled";
         };
     }

@@ -51,6 +51,11 @@ class LeaveRequestController {
             @RequestParam(required = false) UUID leaveTypeId,
             @AuthenticationPrincipal AppUserPrincipal principal,
             Model model) {
+        // Without an employee record there is nothing to book against; say so inside the modal
+        // rather than returning a 404 that htmx never swaps in (an empty, invisible modal).
+        if (employees.findByUserId(principal.userId()).isEmpty()) {
+            return "leave/book-time-off :: noRecord";
+        }
         Employee own = ownEmployee(principal);
         UUID employeeId = own.requireId();
         model.addAttribute("bookableTypes", leaveRequests.bookableTypesForEmployee(employeeId));

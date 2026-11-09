@@ -45,6 +45,11 @@
       <p class="mb-0" th:text="#{admin.reports.headcount.empty}">No active employees match these filters.</p>
     </div>
 
+    <!--/* th:replace runs before th:unless on one element, so the condition wraps it. */-->
+    <th:block th:unless="${#lists.isEmpty(rows)}">
+      <div th:replace="~{fragments/charts :: headcount(${chart})}"></div>
+    </th:block>
+
     <div th:unless="${#lists.isEmpty(rows)}" class="table-responsive">
       <table class="table table-hover align-middle">
         <thead>
@@ -58,7 +63,7 @@
           <tr th:each="row : ${rows}">
             <td th:text="${#temporals.format(row.month(), 'MMMM yyyy')}">September 2026</td>
             <td th:text="${row.departmentName()} ?: '—'">Engineering</td>
-            <td class="text-end" th:text="${row.activeCount()}">12</td>
+            <td class="text-end font-figure" th:text="${row.activeCount()}">12</td>
           </tr>
         </tbody>
       </table>

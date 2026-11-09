@@ -2,7 +2,9 @@ package com.caderly.caderlyhr.web;
 
 import com.caderly.caderlyhr.identity.InviteService;
 import com.caderly.caderlyhr.identity.Role;
+import java.time.Instant;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -55,10 +57,10 @@ class AdminUserController {
                                         user.status().name(),
                                         user.status().label(),
                                         user.roles().stream().map(Role::label).sorted().toList(),
-                                        user.lastLoginAt() == null ? null : user.lastLoginAt().toString()))
+                                        user.lastLoginAt()))
                 .toList();
     }
 
     record UserRow(
-            String email, String status, String statusLabel, List<String> roles, String lastLoginAt) {}
+            String email, String status, String statusLabel, List<String> roles, @Nullable Instant lastLoginAt) {}
 }

@@ -21,8 +21,8 @@
             <div class="fw-semibold" th:text="${row.employeeName}">Jane Doe</div>
             <div class="text-muted small">
               <span th:text="${row.leaveTypeName}">Vacation</span> &middot;
-              <span th:text="${row.startDate}">2026-08-17</span> - <span th:text="${row.endDate}">2026-08-21</span>
-              &middot; <span th:text="${row.durationDays}">5.00</span> day(s)
+              <span th:text="${@fmt.range(row.startDate, row.endDate)}">Mon 17 – Fri 21 Aug 2026</span>
+              &middot; <span class="font-figure" th:text="${@fmt.days(row.durationDays)}">5</span> day(s)
             </div>
             <div class="text-muted small" th:if="${row.note}" th:text="${row.note}">Family trip</div>
           </div>
@@ -33,7 +33,7 @@
                   th:hx-get="@{/for-action/leave-requests/{id}/reject-form(id=${row.requestId})}"
                   hx-target="#rejectLeaveModalBody" hx-swap="innerHTML"
                   th:text="#{leave.for-action.reject}">
-            Reject
+            Decline
           </button>
           <button type="button" class="btn btn-primary btn-sm"
                   th:hx-post="@{/for-action/leave-requests/{id}/approve(id=${row.requestId})}"
@@ -75,8 +75,8 @@
                th:style="${row.color != null} ? 'color:' + ${row.color}" aria-hidden="true"></i>
             <span th:text="${row.leaveTypeName}">Vacation</span>
           </td>
-          <td><span th:text="${row.startDate}">2026-08-17</span> - <span th:text="${row.endDate}">2026-08-21</span></td>
-          <td th:text="${row.durationDays}">5.00</td>
+          <td><span th:text="${@fmt.range(row.startDate, row.endDate)}">Mon 17 – Fri 21 Aug 2026</span></td>
+          <td class="font-figure" th:text="${@fmt.days(row.durationDays)}">5</td>
           <td>
             <span class="badge" th:text="${row.statusLabel}"
                   th:classappend="${row.statusLabel == 'Approved'} ? 'bg-success-subtle text-success-emphasis' : (${row.statusLabel == 'Rejected'} ? 'bg-danger-subtle text-danger-emphasis' : 'bg-secondary-subtle text-secondary-emphasis')">
@@ -105,7 +105,7 @@
        shell in for-action.html, the same convention layout.html uses for #bookLeaveModalBody. */-->
 <th:block th:fragment="rejectForm">
   <div class="modal-header">
-    <h5 class="modal-title" id="rejectLeaveModalLabel" th:text="#{leave.for-action.reject-request}">Reject request</h5>
+    <h5 class="modal-title" id="rejectLeaveModalLabel" th:text="#{leave.for-action.reject-request}">Decline request</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" th:aria-label="#{common.aria.close}"></button>
   </div>
   <form th:object="${rejectForm}" th:hx-post="@{/for-action/leave-requests/{id}/reject(id=${rejectRequestId})}"
@@ -116,7 +116,7 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" th:text="#{common.action.cancel}">Cancel</button>
-      <button class="btn btn-danger btn-sm" type="submit" th:text="#{leave.for-action.reject-request}">Reject request</button>
+      <button class="btn btn-danger btn-sm" type="submit" th:text="#{leave.for-action.reject-request}">Decline request</button>
     </div>
   </form>
 </th:block>

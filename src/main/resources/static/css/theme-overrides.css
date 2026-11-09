@@ -292,6 +292,15 @@
   background-color: var(--bs-tertiary-bg);
 }
 
+/* Page titles: UI Guidelines §3 / BRAND §6.2 page-title step (28px). Bootstrap's own h1 is a
+   responsive 2.5rem, which made every page title about 40px. Same specificity as Bootstrap's
+   ".h1, h1", so this later stylesheet wins at every breakpoint. */
+.h1, h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
 /* Tables: hairline dividers + subtle hover via the component's own local vars,
    plus header styling that has no Bootstrap variable equivalent. */
 .table {

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:replace="~{layout :: layout(#{nav.my-profile}, ~{::#content})}">
+  <div id="content" class="flex-grow-1 p-4">
+    <h1 class="mb-4" th:text="#{nav.my-profile}">My Profile</h1>
+    <div class="card">
+      <div th:replace="~{fragments/no-record :: notice}"></div>
+    </div>
+  </div>
+</th:block>
+</body>
+</html>

@@ -121,9 +121,9 @@ class HomeController {
     @GetMapping("/widgets/book-time-off")
     @PreAuthorize("hasRole('EMPLOYEE')")
     String bookTimeOffWidget(@Nullable @AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        model.addAttribute(
-                "leaveBalances",
-                resolveEmployee(principal).map(e -> balanceCards(e.requireId())).orElse(List.of()));
+        var employee = resolveEmployee(principal);
+        model.addAttribute("hasEmployee", employee.isPresent());
+        model.addAttribute("leaveBalances", employee.map(e -> balanceCards(e.requireId())).orElse(List.of()));
         return "home/widgets :: bookTimeOff";
     }
 
@@ -196,9 +196,11 @@ class HomeController {
     @PreAuthorize("hasRole('EMPLOYEE')")
     String upcomingHolidaysWidget(Model model) {
         LocalDate today = LocalDate.now(clock);
-        List<HolidayMarker> holidays =
-                timeoff.listPublicHolidaysInRange(today, today.plusMonths(6)).stream().limit(5).toList();
-        model.addAttribute("upcomingHolidays", holidays);
+        model.addAttribute(
+                "upcomingHolidays",
+                groupConsecutive(timeoff.listPublicHolidaysInRange(today, today.plusMonths(6))).stream()
+                        .limit(5)
+                        .toList());
         return "home/widgets :: upcomingHolidays";
     }
 
@@ -259,4 +261,23 @@ class HomeController {
             boolean outToday) {}
 
     record OutTodayRow(String fullName, @Nullable String departmentName) {}
+
+    /**
+     * A holiday entered day by day ("UAE National Day" on 2 and 3 Dec) reads as one row with a date
+     * range. Markers arrive in date order; a run continues while the name repeats on the next day.
+     */
+    static List<HolidayGroup> groupConsecutive(List<HolidayMarker> markers) {
+        List<HolidayGroup> groups = new java.util.ArrayList<>();
+        for (HolidayMarker marker : markers) {
+            HolidayGroup last = groups.isEmpty() ? null : groups.getLast();
+            if (last != null && last.name().equals(marker.name()) && last.end().plusDays(1).equals(marker.date())) {
+                groups.set(groups.size() - 1, new HolidayGroup(last.name(), last.start(), marker.date()));
+            } else {
+                groups.add(new HolidayGroup(marker.name(), marker.date(), marker.date()));
+            }
+        }
+        return groups;
+    }
+
+    record HolidayGroup(String name, LocalDate start, LocalDate end) {}
 }

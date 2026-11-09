@@ -45,6 +45,11 @@
       <p class="mb-0" th:text="#{admin.reports.leave-utilization.empty}">No approved leave matches these filters.</p>
     </div>
 
+    <!--/* th:replace runs before th:unless on one element, so the condition wraps it. */-->
+    <th:block th:unless="${#lists.isEmpty(rows)}">
+      <div th:replace="~{fragments/charts :: utilization(${chart})}"></div>
+    </th:block>
+
     <div th:unless="${#lists.isEmpty(rows)}" class="table-responsive">
       <table class="table table-hover align-middle">
         <thead>
@@ -59,7 +64,7 @@
           <tr th:each="row : ${rows}">
             <td th:text="${row.employeeName()}">Jane Doe</td>
             <td th:text="${row.leaveTypeName()}">Vacation</td>
-            <td class="text-end" th:text="${row.daysUsed()}">3</td>
+            <td class="text-end font-figure" th:text="${@fmt.days(row.daysUsed())}">3</td>
             <td class="text-end" th:text="${row.requestCount()}">2</td>
           </tr>
         </tbody>

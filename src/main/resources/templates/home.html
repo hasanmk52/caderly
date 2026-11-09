@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-start mb-4 gap-3">
       <div>
         <h1 th:text="${firstName != null} ? #{home.welcome-named(${firstName})} : #{home.welcome-anonymous}">Welcome!</h1>
-        <p class="text-muted mb-0" th:text="#{home.subtitle}">Here's your Caderly HR home.</p>
+        <p class="text-muted mb-0 font-date small" th:text="${@fmt.today()}">Sat 7 Nov 2026</p>
       </div>
       <button type="button" class="btn btn-outline-secondary btn-sm flex-shrink-0" data-dashboard-customize>
         <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span th:text="#{home.customize.button}">Customize</span>

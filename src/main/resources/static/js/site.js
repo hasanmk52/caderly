@@ -8,6 +8,29 @@
   document.documentElement.classList.add("js");
 
   document.addEventListener("DOMContentLoaded", function () {
+    // Phone menu: <details> already opens and closes without this; these close it the way a menu
+    // is expected to, since an in-page link jump would otherwise leave it covering the section.
+    var menu = document.querySelector(".nav-menu");
+    if (menu) {
+      var toggle = menu.querySelector("summary");
+      menu.querySelectorAll(".nav-menu-panel a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          menu.open = false;
+        });
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && menu.open) {
+          menu.open = false;
+          toggle.focus();
+        }
+      });
+      document.addEventListener("click", function (event) {
+        if (menu.open && !menu.contains(event.target)) {
+          menu.open = false;
+        }
+      });
+    }
+
     var form = document.getElementById("signup-form");
     if (!form) {
       return;

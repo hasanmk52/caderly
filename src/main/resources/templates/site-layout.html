@@ -35,6 +35,22 @@
       <a class="login" th:href="@{/login}" th:text="#{site.nav.login}">Log in</a>
       <a class="btn btn-primary" th:href="@{/signup}" th:text="#{site.cta.start-free}">Start free</a>
     </div>
+    <!--/* Phones only (site.css hides it above 560px). <details> opens with JavaScript off;
+           site.js adds close-on-tap, Escape and outside click. */-->
+    <details class="nav-menu">
+      <summary>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        <span th:text="#{site.nav.menu}">Menu</span>
+      </summary>
+      <ul class="nav-menu-panel">
+        <li><a th:href="@{/#features}" th:text="#{site.nav.features}">Features</a></li>
+        <li><a th:href="@{/#arithmetic}" th:text="#{site.nav.how}">How it works</a></li>
+        <li><a th:href="@{/#security}" th:text="#{site.nav.security}">Security</a></li>
+        <li><a th:href="@{/#pricing}" th:text="#{site.nav.pricing}">Pricing</a></li>
+        <li><a th:href="@{/#faq}" th:text="#{site.nav.faq}">FAQ</a></li>
+        <li class="sep"><a th:href="@{/login}" th:text="#{site.nav.login}">Log in</a></li>
+      </ul>
+    </details>
   </nav>
 </header>
 
@@ -47,7 +63,7 @@
         <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><path d="M40 13H21A8 8 0 0 0 13 21V43A8 8 0 0 0 21 51H48" fill="none" stroke="#6FBDD1" stroke-width="10" stroke-linecap="butt" stroke-linejoin="round"></path><rect x="41" y="26" width="12" height="12" rx="2" fill="#6FBDD1"></rect></svg>
         <span class="brand-name" th:text="#{common.app-name}">Caderly</span>
       </a>
-      <span th:text="#{site.footer.tagline}">Policy clarity, without the gatekeeping.</span>
+      <span class="brand-line" th:text="#{site.footer.tagline}">Policy clarity, without the gatekeeping.</span>
       <a class="btn" th:href="@{/signup}" th:text="#{site.cta.start-free}">Start free</a>
     </div>
     <div class="footer-cols">
