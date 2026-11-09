@@ -15,13 +15,7 @@ A multi-tenant HR information system with leave management. Each company gets it
     <td><img src="docs/screenshots/employees.png" alt="Employee directory"></td>
     <td><img src="docs/screenshots/reports.png" alt="Leave utilization report with chart"></td>
   </tr>
-  <tr>
-    <td colspan="2"><img src="docs/screenshots/public-home.jpg" alt="Public site"></td>
-  </tr>
 </table>
-
-*Screenshots use fictional data. To refresh them (and the public site's product screenshots), run
-`./mvnw test -Dtest=SiteScreenshotsE2ETest -DsiteScreenshots=true` (needs `cwebp` on the PATH).*
 
 ## What it does
 

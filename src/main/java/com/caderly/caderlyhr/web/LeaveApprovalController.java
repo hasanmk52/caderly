@@ -156,7 +156,7 @@ class LeaveApprovalController {
                             decider.name(),
                             decider.isAdmin(),
                             form.decisionNote());
-            toast(response, "toast.leave-request.rejected", "Request rejected");
+            toast(response, "toast.leave-request.rejected", "Request declined");
             addPendingAndCompleted(model, fresh, principal.userId());
             return "leave/for-action :: pendingListAndCounts";
         }

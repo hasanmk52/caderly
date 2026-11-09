@@ -125,12 +125,6 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
                 readme.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
                 readme.screenshot(new Page.ScreenshotOptions().setPath(dir.resolve(screen.getKey())));
             }
-            readme.navigate("http://localhost:" + port + "/");
-            readme.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
-            readme.screenshot(new Page.ScreenshotOptions()
-                    .setPath(dir.resolve("public-home.jpg"))
-                    .setType(com.microsoft.playwright.options.ScreenshotType.JPEG)
-                    .setQuality(85));
             System.out.println("README-SHOTS written to " + dir);
         }
     }

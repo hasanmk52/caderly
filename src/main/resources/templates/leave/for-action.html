@@ -33,7 +33,7 @@
                   th:hx-get="@{/for-action/leave-requests/{id}/reject-form(id=${row.requestId})}"
                   hx-target="#rejectLeaveModalBody" hx-swap="innerHTML"
                   th:text="#{leave.for-action.reject}">
-            Reject
+            Decline
           </button>
           <button type="button" class="btn btn-primary btn-sm"
                   th:hx-post="@{/for-action/leave-requests/{id}/approve(id=${row.requestId})}"
@@ -105,7 +105,7 @@
        shell in for-action.html, the same convention layout.html uses for #bookLeaveModalBody. */-->
 <th:block th:fragment="rejectForm">
   <div class="modal-header">
-    <h5 class="modal-title" id="rejectLeaveModalLabel" th:text="#{leave.for-action.reject-request}">Reject request</h5>
+    <h5 class="modal-title" id="rejectLeaveModalLabel" th:text="#{leave.for-action.reject-request}">Decline request</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" th:aria-label="#{common.aria.close}"></button>
   </div>
   <form th:object="${rejectForm}" th:hx-post="@{/for-action/leave-requests/{id}/reject(id=${rejectRequestId})}"
@@ -116,7 +116,7 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" th:text="#{common.action.cancel}">Cancel</button>
-      <button class="btn btn-danger btn-sm" type="submit" th:text="#{leave.for-action.reject-request}">Reject request</button>
+      <button class="btn btn-danger btn-sm" type="submit" th:text="#{leave.for-action.reject-request}">Decline request</button>
     </div>
   </form>
 </th:block>
