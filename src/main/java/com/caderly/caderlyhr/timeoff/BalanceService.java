@@ -54,7 +54,8 @@ public class BalanceService {
      * transaction — see {@code people.EmployeeService.create}'s doc comment). Grants every active
      * leave type, pro-rated from the employee's hire date. A missing hire date is a real,
      * PRD-allowed state (the field is optional on {@code Employee}), not an error — it just means
-     * there is nothing to pro-rate from yet, so this no-ops until an Admin sets one.
+     * there is nothing to pro-rate from yet, so this no-ops until an Admin sets one, which fires
+     * the hire event again ({@code EmployeeService#updateAdminFields}).
      *
      * <p>A hire date in a past year — an existing employee entered with their real historical
      * hire date, e.g. an HRIS migration, not PRD §12.2's "new hire" case — grants a full balance

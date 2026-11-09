@@ -305,8 +305,14 @@ public class EmployeeService {
             throw new ConflictException(
                     "EMPLOYEE_EMAIL_TAKEN", "An employee with that email already exists");
         }
+        boolean hireDateWasMissing = employee.hireDate() == null;
         applyAdminFields(employee, patch);
         applyManagerChange(employee, patch.managerId());
+        // The on-hire grant skips an employee with no hire date, so the first time one is set is
+        // when they actually get their balances. Later changes to it leave granted balances alone.
+        if (hireDateWasMissing && employee.hireDate() != null && employee.status() != EmployeeStatus.TERMINATED) {
+            events.publishEvent(new EmployeeHiredEvent(employee.requireId()));
+        }
         return employee;
     }
 

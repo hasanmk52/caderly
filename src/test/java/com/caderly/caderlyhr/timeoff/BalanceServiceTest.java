@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -153,6 +154,28 @@ class BalanceServiceTest extends TenantIsolationTestBase {
         List<LeaveBalance> result =
                 asTenant(tenantA, () -> balances.findAllByEmployeeIdAndYear(employee.requireId(), 2026));
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void grantOnHire_hireDateAddedAfterCreate_grantsTheProRatedBalanceThenOnly() {
+        asTenant(
+                tenantA,
+                () ->
+                        leaveTypeService.create(
+                                "Annual", null, null, true, true, false, true, new BigDecimal("30"), null));
+        Employee employee =
+                asTenant(tenantA, () -> employeeService.create(createEmployeeForm(null), BASE_URL, TENANT_NAME));
+        assertThat(asTenant(tenantA, () -> balances.findAllByEmployeeIdAndYear(employee.requireId(), 2026)))
+                .isEmpty();
+
+        asTenant(tenantA, () -> employeeService.updateAdminFields(employee.requireId(), hireDatePatch(employee, LocalDate.of(2026, 7, 1))));
+        // A later correction leaves the granted balance alone; the Admin adjusts it by hand.
+        asTenant(tenantA, () -> employeeService.updateAdminFields(employee.requireId(), hireDatePatch(employee, LocalDate.of(2026, 3, 1))));
+
+        List<LeaveBalance> result =
+                asTenant(tenantA, () -> balances.findAllByEmployeeIdAndYear(employee.requireId(), 2026));
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().granted()).isEqualByComparingTo("15.00");
     }
 
     @Test
@@ -307,7 +330,13 @@ class BalanceServiceTest extends TenantIsolationTestBase {
 
     private record LeaveTypeAndEmployee(UUID employeeId, UUID leaveTypeId, int year) {}
 
-    private EmployeeForms.CreateEmployee createEmployeeForm(LocalDate hireDate) {
+    private static EmployeeForms.AdminEmployeePatch hireDatePatch(Employee employee, LocalDate hireDate) {
+        return new EmployeeForms.AdminEmployeePatch(
+                null, employee.firstName(), employee.lastName(), employee.email(), null, null, null, null, null,
+                null, hireDate, null, null, null, null, null, BigDecimal.valueOf(8), null, null);
+    }
+
+    private EmployeeForms.CreateEmployee createEmployeeForm(@Nullable LocalDate hireDate) {
         return new EmployeeForms.CreateEmployee(
                 "Priya",
                 "Shah",
