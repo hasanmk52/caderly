@@ -84,6 +84,36 @@ class EntityAuditListenerTest extends TenantIsolationTestBase {
         assertThat(update.afterJson()).contains("Sales & Marketing");
     }
 
+    /**
+     * One UPDATE, one row. A query on another table makes Hibernate dirty-check the Division (and
+     * run any {@code @PreUpdate}) without writing it; the commit then writes it once. Seen as an
+     * empty second "Updated" row on leave approval.
+     */
+    @Test
+    void update_flushedTwiceInOneTransaction_writesOneUpdateRow() {
+        UUID divisionId =
+                asTenant(
+                        tenantA,
+                        () -> transactions.execute(status -> divisions.save(Division.create("Support", null)).getId()));
+
+        asTenant(
+                tenantA,
+                () ->
+                        transactions.execute(
+                                status -> {
+                                    Division division = divisions.findById(divisionId).orElseThrow();
+                                    division.rename("Customer Support");
+                                    // A query on another table: Hibernate dirty-checks (and runs
+                                    // @PreUpdate) but does not write the Division yet.
+                                    employees.findAll();
+                                    return division;
+                                }));
+
+        assertThat(findFor(tenantA, "Division", divisionId))
+                .filteredOn(row -> row.action() == Action.UPDATE)
+                .hasSize(1);
+    }
+
     @Test
     void delete_writesAnAuditEntryWithNoAfterState() {
         UUID divisionId =

@@ -43,13 +43,16 @@ security artifact — its create/delete events carry no business-meaningful diff
 not signal" reasoning CURRENT_PHASE.md already applied to `EmailOutbox`'s own status transitions
 (which are excluded by construction, since `EmailOutbox` isn't `TenantAwareEntity` at all).
 
-### C. Before/after capture — `@PostLoad` snapshot diffed at `@PreUpdate`, written via raw JDBC
+### C. Before/after capture — `@PostLoad` snapshot diffed at `@PostUpdate`, written via raw JDBC
 
-JPA's `@PostPersist`/`@PreUpdate`/`@PreRemove` callbacks only see an entity's *current* in-memory
+JPA's `@PostPersist`/`@PostUpdate`/`@PreRemove` callbacks only see an entity's *current* in-memory
 field values — Hibernate has already merged new values into the Java object by the time any
 callback fires, so there is no framework-native way to see what a field held immediately before a
 change. Every service in this codebase follows a load-mutate-flush pattern (private setters, intent
-methods — CLAUDE.md §10), so a snapshot taken on `@PostLoad` and diffed at `@PreUpdate` is reliable.
+methods — CLAUDE.md §10), so a snapshot taken on `@PostLoad` and diffed at `@PostUpdate` is reliable.
+`@PostUpdate`, not `@PreUpdate`: Hibernate runs `@PreUpdate` whenever a flush dirty-checks the
+entity, including an auto-flush before a query on another table that writes nothing, so one real
+UPDATE could be logged twice. `@PostUpdate` runs once per UPDATE executed.
 The snapshot itself lives in a `@Transient` (and Java-`transient`) field on `TenantAwareEntity`
 (`auditSnapshot`) rather than a per-entity field repeated 18 times or a bespoke marker interface —
 one field on the shared base every audited entity already extends.

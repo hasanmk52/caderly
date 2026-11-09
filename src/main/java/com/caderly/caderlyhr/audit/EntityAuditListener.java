@@ -8,8 +8,8 @@ import com.caderly.caderlyhr.common.TenantAwareEntity;
 import com.caderly.caderlyhr.tenant.TenantContext;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PostPersist;
+import jakarta.persistence.PostUpdate;
 import jakarta.persistence.PreRemove;
-import jakarta.persistence.PreUpdate;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.util.UUID;
@@ -31,7 +31,7 @@ import tools.jackson.databind.ObjectMapper;
  * (FR-11.1).
  *
  * <p><strong>Why a raw JDBC insert, not {@code entityManager.persist(...)}.</strong> {@code
- * @PostPersist}/{@code @PreUpdate}/{@code @PreRemove} all fire <em>during</em> Hibernate's flush.
+ * @PostPersist}/{@code @PostUpdate}/{@code @PreRemove} all fire <em>during</em> Hibernate's flush.
  * Calling back into the same {@code EntityManager} to persist a different entity from inside that
  * callback is documented Hibernate territory to avoid — the flush's action queue for this session
  * has already been built, and inserting into it mid-flush is unsupported, not merely
@@ -41,7 +41,7 @@ import tools.jackson.databind.ObjectMapper;
  * back with the surrounding transaction exactly like a normal persist would (CLAUDE.md §6a: this
  * is a synchronous in-transaction write, never an outbox), just without going through Hibernate.
  *
- * <p><strong>Why {@code @PostLoad} + {@code @PreUpdate} diffing, not the entity's current state
+ * <p><strong>Why {@code @PostLoad} + {@code @PostUpdate} diffing, not the entity's current state
  * alone.</strong> By the time any JPA callback fires, Hibernate has already merged new field
  * values into the Java object — there is no framework-native way to see what a field held
  * <em>before</em> the change. Every service in this codebase follows a load-mutate-flush pattern
@@ -83,7 +83,13 @@ public class EntityAuditListener {
         entity.setAuditSnapshot(after);
     }
 
-    @PreUpdate
+    /**
+     * {@code @PostUpdate}, not {@code @PreUpdate}: Hibernate runs {@code @PreUpdate} each time a
+     * flush dirty-checks the entity, including an auto-flush before a query on another table that
+     * then writes nothing, so one real UPDATE could log twice. {@code @PostUpdate} runs once per
+     * UPDATE actually executed.
+     */
+    @PostUpdate
     public void onUpdate(TenantAwareEntity entity) {
         String before = entity.auditSnapshot();
         String after = snapshotter.snapshot(entity);
