@@ -207,18 +207,12 @@ h2.title { margin: 0; font-size: var(--fs-h2); line-height: 1.1; letter-spacing:
 .vignette .shot { position: absolute; left: 0; right: 0; top: 22px; margin: 0 auto; display: block; width: min(100%, 420px); height: auto; border: 1px solid var(--rule); border-radius: var(--radius-panel); box-shadow: var(--shadow-card); background: var(--card); }
 .feature.wide .vignette .shot { width: min(100%, 520px); }
 .panel { position: absolute; left: 0; right: 0; top: 22px; margin: 0 auto; max-width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius-panel); box-shadow: var(--shadow-card); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-.panel .panel-title { font-size: var(--fs-xs); font-weight: 600; }
 .panel .row { display: flex; align-items: center; gap: 10px; }
 .panel .panel-meta { font-size: var(--fs-2xs); color: var(--ink-3); }
 .panel .panel-entry { font-size: var(--fs-2xs); line-height: 1.4; }
 .medium { font-weight: 500; }
 .panel .avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
-.panel .badge { font-size: var(--fs-2xs); font-weight: 600; color: var(--brand); border: 1px solid var(--brand-line); border-radius: 6px; padding: 3px 8px; }
 
-.bars { display: flex; align-items: flex-end; gap: 14px; height: 96px; padding-top: 4px; border-bottom: 1px solid var(--rule); }
-.bars span { flex: 1; background: var(--brand); border-radius: 4px 4px 0 0; }
-.bar-labels { display: flex; gap: 14px; font-size: var(--fs-label); color: var(--ink-3); }
-.bar-labels span { flex: 1; text-align: center; }
 
 /* arithmetic */
 .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 56px; align-items: center; }

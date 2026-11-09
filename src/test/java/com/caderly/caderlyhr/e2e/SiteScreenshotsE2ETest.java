@@ -46,9 +46,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * <pre>./mvnw test -Dtest=SiteScreenshotsE2ETest -DsiteScreenshots=true</pre>
  *
  * Seeds a fictional workspace whose names and dates match the site copy (Priya's vacation, Mon 3 –
- * Mon 10 Aug 2026, skipping the weekend and Eid al-Adha on Fri 7 Aug), crops two screens at 2×
+ * Mon 10 Aug 2026, skipping the weekend and Eid al-Adha on Fri 7 Aug), crops three screens at 2×
  * from a 600px-wide viewport so their text stays legible when scaled into a card,
  * and writes WebP files (via {@code cwebp}, which must be on the PATH) to {@code static/img/site/}.
+ * It also refreshes the README's screenshots in {@code docs/screenshots/}.
  */
 @EnabledIfSystemProperty(named = "siteScreenshots", matches = "true")
 @Import(MutableClockConfiguration.class)
@@ -94,6 +95,44 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
         // of the month, which keeps the day numbers legible once scaled into a site card.
         shot(page.locator(".calendar-scroll"), "site-calendar", 0);
 
+        page.navigate(baseUrl + "/admin/reports/leave-utilization?from=2026-08-01&to=2026-08-31");
+        shot(page.locator(".caderly-chart"), "site-report", 0);
+
+        readmeScreenshots(aishaEmail);
+
+    }
+
+    /** The README's 1280×800 screens, from the same fictional workspace (no real data in docs). */
+    private void readmeScreenshots(String email) throws IOException {
+        Path dir = Path.of("docs/screenshots");
+        try (var context = page.context().browser().newContext(
+                new Browser.NewContextOptions().setViewportSize(1280, 800).setDeviceScaleFactor(1)
+                        .setReducedMotion(com.microsoft.playwright.options.ReducedMotion.REDUCE))) {
+            Page readme = context.newPage();
+            readme.navigate(baseUrl + "/login");
+            readme.fill("#email", email);
+            readme.fill("#password", PASSWORD);
+            readme.click("button[type=submit]");
+            readme.waitForURL(baseUrl + "/");
+            Map<String, String> screens = new java.util.LinkedHashMap<>();
+            screens.put("dashboard.png", "/");
+            screens.put("employees.png", "/admin/employees");
+            screens.put("for-action.png", "/for-action");
+            screens.put("calendar.png", "/calendar?month=2026-08");
+            screens.put("reports.png", "/admin/reports/leave-utilization?from=2026-08-01&to=2026-08-31");
+            for (var screen : screens.entrySet()) {
+                readme.navigate(baseUrl + screen.getValue());
+                readme.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+                readme.screenshot(new Page.ScreenshotOptions().setPath(dir.resolve(screen.getKey())));
+            }
+            readme.navigate("http://localhost:" + port + "/");
+            readme.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+            readme.screenshot(new Page.ScreenshotOptions()
+                    .setPath(dir.resolve("public-home.jpg"))
+                    .setType(com.microsoft.playwright.options.ScreenshotType.JPEG)
+                    .setQuality(85));
+            System.out.println("README-SHOTS written to " + dir);
+        }
     }
 
     private void seed(String slug, String aishaEmail) {
@@ -118,8 +157,10 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
             Employee daniel = person("Daniel", "Okafor", "daniel.okafor@northwind.example", "Sales", null, "Sales Manager", null);
 
             UUID vacation = leaveTypes.create("Vacation", "bi-airplane", null, true, true, false, true, new BigDecimal("30"), null).requireId();
-            leaveTypes.create("Sick", "bi-bandaid", null, true, true, true, false, new BigDecimal("10"), null);
+            UUID sick = leaveTypes.create("Sick", "bi-bandaid", null, true, true, true, false, new BigDecimal("10"), null).requireId();
             holidays.create(LocalDate.of(2026, 8, 7), "Eid al-Adha");
+            // An upcoming one for the dashboard widget; outside August, so the counts above are unaffected.
+            holidays.create(LocalDate.of(2026, 12, 2), "UAE National Day");
 
             // The clock reads Sun 2 Aug 2026, so every request below is in the future when booked.
             book(priya, vacation, LocalDate.of(2026, 8, 3), LocalDate.of(2026, 8, 10), "Family visit");
@@ -129,6 +170,10 @@ class SiteScreenshotsE2ETest extends PlaywrightE2ETestBase {
             approve(book(sara, vacation, LocalDate.of(2026, 8, 10), LocalDate.of(2026, 8, 11), null), rahul, false);
             approve(book(daniel, vacation, LocalDate.of(2026, 8, 18), LocalDate.of(2026, 8, 20), null), aisha, true);
             book(rahul, vacation, LocalDate.of(2026, 8, 24), LocalDate.of(2026, 8, 26), "Conference");
+            // A few sick days so the utilization chart stacks more than one leave type.
+            approve(book(omar, sick, LocalDate.of(2026, 8, 12), LocalDate.of(2026, 8, 12), null), aisha, true);
+            approve(book(lena, sick, LocalDate.of(2026, 8, 25), LocalDate.of(2026, 8, 26), null), rahul, false);
+            approve(book(daniel, sick, LocalDate.of(2026, 8, 27), LocalDate.of(2026, 8, 27), null), aisha, true);
         } finally {
             TenantContext.clear();
         }
