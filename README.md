@@ -1,4 +1,4 @@
-# Caderly HR
+# Caderly
 
 A multi-tenant HR information system with leave management. Each company gets its own workspace on its own subdomain (`acme.example.com`), configures its own leave types, weekends, holidays and org structure, and never sees another company's data.
 
