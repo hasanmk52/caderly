@@ -1,6 +1,7 @@
 package com.caderly.caderlyhr.web;
 
 import com.caderly.caderlyhr.common.CaderlyException;
+import com.caderly.caderlyhr.identity.AppUserPrincipal;
 import com.caderly.caderlyhr.org.OrgFacade;
 import com.caderly.caderlyhr.people.Employee;
 import com.caderly.caderlyhr.people.EmployeeForms.AdminEmployeePatch;
@@ -13,12 +14,15 @@ import com.caderly.caderlyhr.tenant.TenantSummary;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -41,11 +45,13 @@ class AdminEmployeeController {
     private final EmployeeService employees;
     private final OrgFacade orgFacade;
     private final MessageSource messages;
+    private final Clock clock;
 
-    AdminEmployeeController(EmployeeService employees, OrgFacade orgFacade, MessageSource messages) {
+    AdminEmployeeController(EmployeeService employees, OrgFacade orgFacade, MessageSource messages, Clock clock) {
         this.employees = employees;
         this.orgFacade = orgFacade;
         this.messages = messages;
+        this.clock = clock;
     }
 
     @GetMapping("/admin/employees")
@@ -53,11 +59,15 @@ class AdminEmployeeController {
     String list(
             @RequestParam(required = false) @Nullable UUID departmentId,
             @RequestParam(required = false) @Nullable EmployeeStatus status,
+            @RequestParam(defaultValue = "false") boolean addSelf,
             Model model) {
         model.addAttribute("employees", rows(employees.list(departmentId, status)));
         model.addAttribute("statusOptions", EmployeeStatus.values());
         model.addAttribute("selectedDepartmentId", departmentId);
         model.addAttribute("selectedStatus", status);
+        // From the no-record notice: the page opens Add Employee on load, prefilled for the
+        // Admin themselves (newForm's self flag).
+        model.addAttribute("addSelf", addSelf);
         // Both offcanvas form fragments render inline on a full-page GET (th:fragment does not
         // suppress that), so both th:object targets need a bound value up front here — same
         // reason AdminOrganizationController#organization populates both divisionForm and
@@ -70,8 +80,14 @@ class AdminEmployeeController {
 
     @GetMapping("/admin/employees/new-form")
     @PreAuthorize("hasRole('ADMIN')")
-    String newForm(Model model) {
-        model.addAttribute("createForm", blankCreateForm());
+    String newForm(
+            @RequestParam(defaultValue = "false") boolean self,
+            @AuthenticationPrincipal AppUserPrincipal principal,
+            Model model) {
+        // The Admin's own email comes from their session, never from the URL; saving links the
+        // new employee to the login they are signed in with (EmployeeService#create).
+        model.addAttribute("createForm", self ? selfCreateForm(principal.getUsername()) : blankCreateForm());
+        model.addAttribute("addingSelf", self);
         populateFormOptions(model);
         return "people/list :: createForm";
     }
@@ -87,8 +103,13 @@ class AdminEmployeeController {
         if (!binding.hasErrors()) {
             try {
                 TenantSummary tenant = RequestTenant.of(request);
-                employees.create(form, RequestTenant.baseUrl(), tenant.name());
-                toast(response, "toast.employee.created", "Employee created - invite email sent");
+                Employee created = employees.create(form, RequestTenant.baseUrl(), tenant.name());
+                // Only a login that was already active comes back ACTIVE; it got no invite.
+                if (created.status() == EmployeeStatus.ACTIVE) {
+                    toast(response, "toast.employee.linked", "Employee created and linked to their login");
+                } else {
+                    toast(response, "toast.employee.created", "Employee created - invite email sent");
+                }
                 populateContentAttributes(model);
                 model.addAttribute("refreshTable", true);
                 model.addAttribute("createForm", blankCreateForm());
@@ -179,6 +200,16 @@ class AdminEmployeeController {
         return new CreateEmployee(
                 "", "", "", null, null, null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null);
+    }
+
+    /**
+     * Today's hire date is prefilled because leave balances are granted on create only when one
+     * is set (BalanceService#grantOnHire), and the Admin is usually already working there.
+     */
+    private CreateEmployee selfCreateForm(String email) {
+        return new CreateEmployee(
+                "", "", email, null, null, null, null, null, null, null, LocalDate.now(clock), null, null, null,
+                null, null, null, null, null);
     }
 
     private static AdminEmployeePatch blankAdminPatch() {

@@ -153,6 +153,140 @@ class EmployeeServiceTest extends TenantIsolationTestBase {
     }
 
     @Test
+    void create_whenTheEmailHasAnActiveLoginWithNoEmployee_linksItAsActiveAndSendsNoInvite() {
+        String email = uniqueEmail();
+        AppUser login = asTenant(tenantA, () -> appUsers.save(AppUser.active(email, "{noop}unused")));
+
+        Employee employee =
+                asTenant(tenantA, () -> employeeService.create(form("Aisha", "Rahman", email.toUpperCase()), BASE_URL, TENANT_NAME));
+
+        assertThat(employee.userId()).isEqualTo(login.requireId());
+        assertThat(employee.status()).isEqualTo(EmployeeStatus.ACTIVE);
+        var openHistory =
+                asTenant(
+                        tenantA,
+                        () ->
+                                statusHistory.findFirstByEmployeeIdAndEffectiveToIsNullOrderByEffectiveFromDesc(
+                                        employee.requireId()));
+        assertThat(openHistory.orElseThrow().status()).isEqualTo(EmployeeStatus.ACTIVE);
+        assertThat(emailsTo(email)).isEmpty();
+    }
+
+    @Test
+    void create_whenTheEmailHasAnInvitedLogin_linksItAndActivatesWhenTheInviteIsAccepted() {
+        String email = uniqueEmail();
+        UUID loginId = asTenant(tenantA, () -> inviteService.invite(email, java.util.Set.of(Role.MANAGER), BASE_URL, TENANT_NAME));
+
+        Employee employee = asTenant(tenantA, () -> employeeService.create(form("Jane", "Doe", email), BASE_URL, TENANT_NAME));
+
+        assertThat(employee.userId()).isEqualTo(loginId);
+        assertThat(employee.status()).isEqualTo(EmployeeStatus.INVITED);
+        assertThat(emailsTo(email)).as("only the original invite").hasSize(1);
+
+        asTenant(tenantA, () -> inviteService.acceptInvite(tokenFromLastEmailTo(email), "Str0ngPassphrase"));
+
+        assertThat(asTenant(tenantA, () -> employeeService.require(employee.requireId())).status())
+                .isEqualTo(EmployeeStatus.ACTIVE);
+    }
+
+    @Test
+    void create_whenTheLoginAlreadyBelongsToAnotherEmployee_throwsLoginTaken() {
+        String email = uniqueEmail();
+        Employee first = asTenant(tenantA, () -> employeeService.create(form("Jane", "Doe", email), BASE_URL, TENANT_NAME));
+        // The first employee's contact email moves on, but their login keeps the original address.
+        asTenant(
+                tenantA,
+                () ->
+                        employeeService.updateAdminFields(
+                                first.requireId(),
+                                new EmployeeForms.AdminEmployeePatch(
+                                        null, "Jane", "Doe", uniqueEmail(), null, null, null, null, null, null, null,
+                                        null, null, null, null, null, BigDecimal.valueOf(8), null, null)));
+
+        assertThatThrownBy(
+                        () -> asTenant(tenantA, () -> employeeService.create(form("Other", "Person", email), BASE_URL, TENANT_NAME)))
+                .isInstanceOf(ConflictException.class)
+                .extracting(e -> ((ConflictException) e).errorCode())
+                .isEqualTo("EMPLOYEE_LOGIN_TAKEN");
+    }
+
+    @Test
+    void create_whenTheLoginIsDisabled_throwsUserEmailTaken() {
+        String email = uniqueEmail();
+        asTenant(
+                tenantA,
+                () -> {
+                    AppUser login = AppUser.active(email, "{noop}unused");
+                    login.disable();
+                    return appUsers.save(login);
+                });
+
+        assertThatThrownBy(
+                        () -> asTenant(tenantA, () -> employeeService.create(form("Jane", "Doe", email), BASE_URL, TENANT_NAME)))
+                .isInstanceOf(ConflictException.class)
+                .extracting(e -> ((ConflictException) e).errorCode())
+                .isEqualTo("USER_EMAIL_TAKEN");
+    }
+
+    @Test
+    void create_whenOnlyAnotherTenantHasThatLogin_invitesAFreshLoginInThisTenant() {
+        String email = uniqueEmail();
+        AppUser otherTenantsLogin = asTenant(tenantB, () -> appUsers.save(AppUser.active(email, "{noop}unused")));
+
+        Employee employee = asTenant(tenantA, () -> employeeService.create(form("Jane", "Doe", email), BASE_URL, TENANT_NAME));
+
+        assertThat(employee.userId()).isNotEqualTo(otherTenantsLogin.requireId());
+        assertThat(employee.status()).isEqualTo(EmployeeStatus.INVITED);
+        assertThat(emailsTo(email)).hasSize(1);
+        assertThat(asTenant(tenantB, () -> employees.findByUserId(otherTenantsLogin.requireId()))).isEmpty();
+    }
+
+    @Test
+    void inviteFounder_createsAnInvitedAdminLinkedToAnEmployeeNamedFromTheSignup() {
+        String email = uniqueEmail();
+
+        InviteService.IssuedInvite invite =
+                asTenant(tenantA, () -> employeeService.inviteFounder("Aisha  Al Rahman ", email, BASE_URL, TENANT_NAME));
+
+        Employee founder = asTenant(tenantA, () -> employees.findByUserId(invite.userId())).orElseThrow();
+        assertThat(founder.firstName()).isEqualTo("Aisha Al");
+        assertThat(founder.lastName()).isEqualTo("Rahman");
+        assertThat(founder.email()).isEqualTo(email);
+        assertThat(founder.status()).isEqualTo(EmployeeStatus.INVITED);
+        assertThat(founder.hireDate()).isEqualTo(LocalDate.now(clock));
+        assertThat(asTenant(tenantA, () -> appUsers.findById(invite.userId())).orElseThrow().roles())
+                .containsExactly(Role.ADMIN);
+    }
+
+    @Test
+    void inviteFounder_withAOneWordName_leavesTheLastNameEmpty() {
+        InviteService.IssuedInvite invite =
+                asTenant(tenantA, () -> employeeService.inviteFounder("Aisha", uniqueEmail(), BASE_URL, TENANT_NAME));
+
+        Employee founder = asTenant(tenantA, () -> employees.findByUserId(invite.userId())).orElseThrow();
+        assertThat(founder.firstName()).isEqualTo("Aisha");
+        assertThat(founder.lastName()).isEmpty();
+    }
+
+    @Test
+    void inviteFounder_withANameLongerThanTheColumns_capsEachPart() {
+        String longWord = "a".repeat(150);
+
+        InviteService.IssuedInvite invite =
+                asTenant(tenantA, () -> employeeService.inviteFounder(longWord + " " + longWord, uniqueEmail(), BASE_URL, TENANT_NAME));
+
+        Employee founder = asTenant(tenantA, () -> employees.findByUserId(invite.userId())).orElseThrow();
+        assertThat(founder.firstName()).hasSize(100);
+        assertThat(founder.lastName()).hasSize(100);
+    }
+
+    private List<EmailOutbox> emailsTo(String email) {
+        return TenantContext.runAsSystem(
+                "test: read outbox",
+                () -> emailOutbox.findAll().stream().filter(row -> row.toEmail().equals(email)).toList());
+    }
+
+    @Test
     void updateSelfServiceFields_onlyTouchesContactAndAddressFields() {
         Employee employee = createActiveEmployee("Jane", "Doe");
 

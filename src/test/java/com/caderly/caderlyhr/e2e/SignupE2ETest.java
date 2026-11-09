@@ -66,6 +66,10 @@ class SignupE2ETest extends PlaywrightE2ETestBase {
         loginAs(email, EMPLOYEE_PASSWORD);
         assertThat(page.url()).isEqualTo(baseUrl + "/");
 
+        // The founder is an employee too, named from the sign-up form, not a bare login.
+        page.navigate(baseUrl + "/profile");
+        assertThat(page.textContent("main")).contains("Aisha Rahman").doesNotContain("no employee record");
+
         // Admin, not just a member: the user-management page opens.
         page.navigate(baseUrl + "/admin/users");
         assertThat(page.url()).isEqualTo(baseUrl + "/admin/users");

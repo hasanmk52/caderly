@@ -8,6 +8,7 @@ import com.caderly.caderlyhr.identity.AppUserPrincipal;
 import com.caderly.caderlyhr.identity.AppUserRepository;
 import com.caderly.caderlyhr.identity.InviteService;
 import com.caderly.caderlyhr.identity.Role;
+import com.caderly.caderlyhr.identity.UserStatus;
 import com.caderly.caderlyhr.org.Department;
 import com.caderly.caderlyhr.org.OrgFacade;
 import com.caderly.caderlyhr.security.SessionRevoker;
@@ -17,6 +18,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmployeeService {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeService.class);
+    /** {@code employee.first_name} and {@code last_name} are {@code varchar(100)}. */
+    private static final int NAME_MAX = 100;
 
     private final EmployeeRepository employees;
     private final EmployeeStatusHistoryRepository statusHistory;
@@ -166,8 +170,14 @@ public class EmployeeService {
     }
 
     /**
-     * Creates an Employee in {@code INVITED} status and sends the login invite (reusing {@link
-     * InviteService} — PRD §14.2). Write-then-read-back-via-invite in one transaction (ADR 0007).
+     * Creates an Employee and gives them a login (PRD §14.2). Write-then-read-back-via-invite in
+     * one transaction (ADR 0007).
+     *
+     * <p>An email with no login in this workspace gets an {@code INVITED} employee and a fresh
+     * invite. An email that already has a login no employee uses — a self-serve founder, a
+     * Super-Admin-provisioned Admin, a user invited from the Users page — is linked instead, with
+     * no second invite: the employee starts {@code ACTIVE} if that login is, otherwise
+     * {@code INVITED} until the pending invite is accepted. A disabled login is not revived.
      */
     @Transactional
     public Employee create(EmployeeForms.CreateEmployee form, String appBaseUrl, String tenantName) {
@@ -176,21 +186,71 @@ public class EmployeeService {
             throw new ConflictException(
                     "EMPLOYEE_EMAIL_TAKEN", "An employee with that email already exists");
         }
+        // @TenantId scopes this lookup, so another workspace's login with the same email is
+        // never found here and never linked (BR-12).
+        Optional<AppUser> login = appUsers.findByEmail(form.email().trim().toLowerCase(Locale.ROOT));
+        if (login.isEmpty()) {
+            UUID userId = inviteService.invite(form.email(), Set.of(Role.EMPLOYEE), appBaseUrl, tenantName);
+            return hire(form, userId, EmployeeStatus.INVITED);
+        }
+        AppUser existing = login.get();
+        if (existing.status() == UserStatus.DISABLED) {
+            throw new ConflictException(
+                    "USER_EMAIL_TAKEN", "A user with that email already exists in this workspace");
+        }
+        if (employees.findByUserId(existing.requireId()).isPresent()) {
+            throw new ConflictException(
+                    "EMPLOYEE_LOGIN_TAKEN", "That login already belongs to another employee");
+        }
+        EmployeeStatus status =
+                existing.status() == UserStatus.ACTIVE ? EmployeeStatus.ACTIVE : EmployeeStatus.INVITED;
+        return hire(form, existing.requireId(), status);
+    }
+
+    /**
+     * A self-serve workspace's first Admin: their login and invite, and an employee record named
+     * from the sign-up form, so they land with a profile like anyone they later hire (ADR 0022).
+     * Activated on accept by {@link EmployeeInviteAcceptedListener}, as for any invite.
+     */
+    @Transactional
+    public InviteService.IssuedInvite inviteFounder(
+            String fullName, String email, String appBaseUrl, String tenantName) {
+        InviteService.IssuedInvite invite =
+                inviteService.issueInvite(email, Set.of(Role.ADMIN), appBaseUrl, tenantName);
+        // The form asks for one name. The last word is taken as the surname, so most names read
+        // right on the profile; a one-word name leaves it blank for the founder to fill in. Each
+        // part is capped to its column, since sign-up accepts a longer name than either holds.
+        String name = fullName.trim().replaceAll("\\s+", " ");
+        int lastSpace = name.lastIndexOf(' ');
+        String firstName = capName(lastSpace < 0 ? name : name.substring(0, lastSpace));
+        String lastName = capName(lastSpace < 0 ? "" : name.substring(lastSpace + 1));
+        var form =
+                new EmployeeForms.CreateEmployee(
+                        firstName, lastName, email, null, null, null, null, null, null, null,
+                        LocalDate.now(clock), null, null, null, null, null, null, null, null);
+        hire(form, invite.userId(), EmployeeStatus.INVITED);
+        return invite;
+    }
+
+    private static String capName(String part) {
+        return part.length() <= NAME_MAX ? part : part.substring(0, NAME_MAX).strip();
+    }
+
+    private Employee hire(EmployeeForms.CreateEmployee form, UUID userId, EmployeeStatus status) {
         LocalDate today = LocalDate.now(clock);
 
         Employee employee = Employee.create(form.firstName(), form.lastName(), form.email());
         applyAdminFields(employee, form.toAdminPatch());
+        employee.changeStatus(status);
+        employee.linkUser(userId);
         employees.save(employee);
 
-        statusHistory.save(EmployeeStatusHistory.open(employee, EmployeeStatus.INVITED, form.employmentType(), today));
+        statusHistory.save(EmployeeStatusHistory.open(employee, status, form.employmentType(), today));
         // After save(), because the manager transition needs the employee's id (see
         // applyManagerChange). reassignManagerInternal is the only place that writes the
         // manager-history row on create — do not add a second managerHistory.save() here, or
         // two rows end up open on the same day.
         applyManagerChange(employee, form.managerId());
-
-        UUID userId = inviteService.invite(form.email(), Set.of(Role.EMPLOYEE), appBaseUrl, tenantName);
-        employee.linkUser(userId);
 
         // Published, not called directly: people must not depend on timeoff (see
         // EmployeeHiredEvent's doc comment). Plain @EventListener, not @TransactionalEventListener

@@ -232,6 +232,7 @@ public class SignupService {
                             signup.timezone(),
                             signup.weekendDays(),
                             seatLimit,
+                            signup.adminName(),
                             signup.adminEmail(),
                             tenantBaseUrl.apply(signup.slug()),
                             signup.requireId());

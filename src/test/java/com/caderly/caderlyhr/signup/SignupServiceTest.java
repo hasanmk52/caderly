@@ -13,6 +13,9 @@ import com.caderly.caderlyhr.identity.AppUserRepository;
 import com.caderly.caderlyhr.identity.Role;
 import com.caderly.caderlyhr.identity.UserStatus;
 import com.caderly.caderlyhr.notifications.system.EmailOutbox;
+import com.caderly.caderlyhr.people.Employee;
+import com.caderly.caderlyhr.people.EmployeeRepository;
+import com.caderly.caderlyhr.people.EmployeeStatus;
 import com.caderly.caderlyhr.notifications.system.EmailOutboxRepository;
 import com.caderly.caderlyhr.signup.system.PendingSignup;
 import com.caderly.caderlyhr.signup.system.PendingSignupRepository;
@@ -56,6 +59,7 @@ class SignupServiceTest {
     @Autowired private EmailOutboxRepository outbox;
     @Autowired private TenantRepository tenants;
     @Autowired private AppUserRepository users;
+    @Autowired private EmployeeRepository employees;
     @Autowired private AuditEntryRepository auditEntries;
     @Autowired private MutableClock clock;
 
@@ -119,6 +123,11 @@ class SignupServiceTest {
             AppUser admin = users.findByEmail(email).orElseThrow();
             assertThat(admin.status()).isEqualTo(UserStatus.INVITED);
             assertThat(admin.roles()).containsExactly(Role.ADMIN);
+
+            Employee founder = employees.findByUserId(admin.requireId()).orElseThrow();
+            assertThat(founder.firstName()).isEqualTo("Aisha");
+            assertThat(founder.lastName()).isEqualTo("Rahman");
+            assertThat(founder.status()).isEqualTo(EmployeeStatus.INVITED);
         } finally {
             TenantContext.clear();
         }

@@ -4,6 +4,7 @@ import com.caderly.caderlyhr.audit.EntityAuditListener;
 import com.caderly.caderlyhr.audit.system.AuditEntry.Action;
 import com.caderly.caderlyhr.identity.InviteService;
 import com.caderly.caderlyhr.identity.Role;
+import com.caderly.caderlyhr.people.EmployeeService;
 import com.caderly.caderlyhr.tenant.TenantContext;
 import com.caderly.caderlyhr.tenant.TenantFacade;
 import java.util.LinkedHashMap;
@@ -34,13 +35,19 @@ public class TenantProvisioningService {
 
     private final TenantFacade tenants;
     private final InviteService invites;
+    private final EmployeeService employees;
     private final EntityAuditListener auditListener;
     private final ObjectMapper mapper;
 
     TenantProvisioningService(
-            TenantFacade tenants, InviteService invites, EntityAuditListener auditListener, ObjectMapper mapper) {
+            TenantFacade tenants,
+            InviteService invites,
+            EmployeeService employees,
+            EntityAuditListener auditListener,
+            ObjectMapper mapper) {
         this.tenants = tenants;
         this.invites = invites;
+        this.employees = employees;
         this.auditListener = auditListener;
         this.mapper = mapper;
     }
@@ -48,9 +55,9 @@ public class TenantProvisioningService {
     /**
      * Creates a new tenant and invites its first Admin.
      *
-     * <p>No {@code Employee} row is created for the invited Admin: {@code people.Employee.userId}
-     * is a nullable plain column with no reverse FK, so an {@code AppUser} can stand alone until
-     * (if ever) an Admin later creates a matching Employee record by hand.
+     * <p>No {@code Employee} row is created for the invited Admin, because this form collects no
+     * name: the login stands alone until an Admin adds a matching employee, which then links to it
+     * ({@code EmployeeService#create}).
      *
      * <p>Writes the tenant-lifecycle {@code audit_entry} row itself (CLAUDE.md §5 rule 6 — every
      * Super-Admin write bypassing tenancy must be audited) rather than inside {@link
@@ -93,6 +100,8 @@ public class TenantProvisioningService {
      * Self-serve sign-up's provisioning (ADR 0022 decision C): the same create-tenant-then-invite
      * sequence as {@link #provision}, with a seat limit, and returning the first Admin's accept link
      * so the caller can redirect straight to it. The invite email is still queued as a fallback.
+     * Unlike {@link #provision}, the sign-up form gives the founder's name, so they also get an
+     * employee record, in the same transaction as their login.
      *
      * <p>Audited as {@code SELF_SIGNUP}, with the confirmed sign-up's id standing in for the actor:
      * there is no user yet, and the sign-up row is the record of who asked.
@@ -105,6 +114,7 @@ public class TenantProvisioningService {
             String timezone,
             int weekendDays,
             int seatLimit,
+            String firstAdminName,
             String firstAdminEmail,
             String appBaseUrl,
             UUID signupId) {
@@ -120,7 +130,7 @@ public class TenantProvisioningService {
         TenantContext.set(tenantId);
         try {
             InviteService.IssuedInvite invite =
-                    invites.issueInvite(firstAdminEmail, Set.of(Role.ADMIN), appBaseUrl, name);
+                    employees.inviteFounder(firstAdminName, firstAdminEmail, appBaseUrl, name);
             return new SelfServeWorkspace(tenantId, invite.acceptUrl());
         } finally {
             TenantContext.clear();

@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<!--/* A login with no linked employee record (e.g. a self-serve founder Admin) has no profile,
-       balances or approvals of its own. Shown as a state, not a 404, on every page that needs the
-       record. It names no fix: an existing login can't be linked to a new employee from the UI. */-->
+<!--/* A login with no linked employee record (e.g. a Super-Admin-provisioned first Admin) has no
+       profile, balances or approvals of its own. Shown as a state, not a 404, on every page that
+       needs the record. An Admin can fix it themselves: Add Employee with their own email links the
+       new record to this login (EmployeeService#create). */-->
 <div th:fragment="notice" class="text-center text-muted py-5 px-3">
   <i class="bi bi-person-badge fs-1 d-block mb-2" aria-hidden="true"></i>
   <h2 class="h5 text-body mb-2" th:text="#{no-record.title}">This account has no employee record</h2>
   <p class="mb-0 mx-auto" style="max-width: 32rem" th:text="#{no-record.body}">Profile, time off and approvals belong to an employee record.</p>
-  <p class="mb-0 mt-2 mx-auto small" style="max-width: 32rem" sec:authorize="hasRole('ADMIN')"
-     th:text="#{no-record.admin-note}">You can still manage people, leave types, holidays and reports.</p>
+  <th:block sec:authorize="hasRole('ADMIN')">
+    <p class="mb-3 mt-2 mx-auto small" style="max-width: 32rem"
+       th:text="#{no-record.admin-note}">As an Admin you can add yourself as an employee.</p>
+    <a class="btn btn-primary btn-sm" th:href="@{/admin/employees(addSelf=true)}">
+      <i class="bi bi-person-plus" aria-hidden="true"></i> <span th:text="#{no-record.add-self}">Add yourself as an employee</span>
+    </a>
+  </th:block>
 </div>
 </body>
 </html>

@@ -81,6 +81,9 @@ not match and only the dashboard mapping remains.
    `TenantProvisioningService.provisionSelfServe(...)`, which runs the exact same
    create-tenant-then-invite sequence as the console (ADR 0019 decision B: the tenant row is
    written under `runAsSystem`, the first Admin under the new tenant's own `TenantContext`).
+   Unlike the console, it also creates the founder's employee record from the name on the form
+   (split at the last space), in the same transaction as their login, so they land with a profile
+   and leave balances. That record holds one of the workspace's seats (decision F).
 4. Instead of making the person wait for a second email, the POST lands on a same-site "Your
    workspace is ready" page whose button links to the new tenant's `/accept-invite?token=…`. It is a
    link rather than a redirect because the CSP's `form-action 'self'` also applies to redirects

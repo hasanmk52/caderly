@@ -11,6 +11,9 @@
               hx-target="#employeeOffcanvasBody" hx-swap="innerHTML">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> <span th:text="#{admin.employees.add}">Add Employee</span>
       </button>
+      <!--/* Arrived from the no-record notice: open Add Employee prefilled with the Admin's own email. */-->
+      <div th:if="${addSelf}" th:hx-get="@{/admin/employees/new-form(self=true)}" hx-trigger="load"
+           hx-target="#employeeOffcanvasBody" hx-swap="innerHTML"></div>
     </div>
 
     <!--/* Mirrors admin/organization.html's #organization-content pattern: everything a
@@ -228,7 +231,7 @@
       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="offcanvas" th:text="#{common.action.cancel}">Cancel</button>
       <button class="btn btn-primary btn-sm" type="submit">
         <span id="employeeFormSpinner" class="spinner-border spinner-border-sm htmx-indicator me-1" aria-hidden="true"></span>
-        <span th:text="#{admin.employees.create-submit}">Create &amp; send invite</span>
+        <span th:text="${addingSelf} ? #{admin.employees.create-self-submit} : #{admin.employees.create-submit}">Create &amp; send invite</span>
       </button>
     </div>
   </form>
