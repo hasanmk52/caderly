@@ -2,7 +2,7 @@
 
 A multi-tenant HR information system with leave management. Each company gets its own workspace on its own subdomain (`acme.example.com`), configures its own leave types, weekends, holidays and org structure, and never sees another company's data.
 
-> **Status:** in active development and used by its first customer. This is a proprietary product: the source is visible, but it is **not open source** and no licence to use, copy or deploy it is granted. All rights reserved.
+> **Status:** in active development, with its first company about to start using it. This is a proprietary product: the source is visible, but it is **not open source** and no licence to use, copy or deploy it is granted. All rights reserved.
 
 ![Team calendar](docs/screenshots/calendar.png)
 

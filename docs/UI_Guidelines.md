@@ -475,7 +475,7 @@ structure of a conventional SaaS landing page rather than the sidebar/topbar she
 - **Script:** `static/js/site.js`, plain DOM, progressive enhancement only — every form works with
   JavaScript off. No htmx or Alpine on the site. No inline script or `on*` attributes (CSP
   `script-src 'self'`).
-- **Images:** `static/img/site/*.webp`, real photography; explicit `width`/`height` to avoid layout
+- **Images:** `static/img/site/*.webp`: AI-generated portraits and screenshots of the real app; explicit `width`/`height` to avoid layout
   shift, `loading="lazy"` below the fold.
 - **Copy:** only features that are built. Strings via `#{site.*}`; the legal texts are the one
   exception (ADR 0022 decision G).
