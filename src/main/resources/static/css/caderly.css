@@ -237,3 +237,203 @@ body {
 .dashboard-grid.is-editing [data-hidden="true"] .card { opacity: .5; }
 .dashboard-grid.is-editing .dashboard-handle { cursor: grab; }
 .dashboard-grid.is-editing [data-widget] .card { outline: 2px dashed var(--bs-border-color); outline-offset: 2px; }
+
+/* Report charts (PRD FR-10.2/10.3, UI Guidelines "Charts"). The six categorical slots were checked
+   with a palette validator on the white card: lightness band, chroma floor, colour-blind separation
+   (worst adjacent ΔE 9.7) and the normal-vision floor (16.3) all pass, and every slot is at least 3:1
+   against the card. Petrol leads; none reuse the reserved status colours. Slot 0 is "Other". */
+:root {
+  --chart-1: #0C86AB;
+  --chart-2: #E8703A;
+  --chart-3: #6A5AD0;
+  --chart-4: #24A37A;
+  --chart-5: #B38A0E;
+  --chart-6: #DB6A97;
+  --chart-0: #8B93A2;
+  --chart-line: var(--bs-primary);
+  --chart-grid: var(--bs-border-color);
+}
+.chart-s1 { background: var(--chart-1); }
+.chart-s2 { background: var(--chart-2); }
+.chart-s3 { background: var(--chart-3); }
+.chart-s4 { background: var(--chart-4); }
+.chart-s5 { background: var(--chart-5); }
+.chart-s6 { background: var(--chart-6); }
+.chart-s0 { background: var(--chart-0); }
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--bs-secondary-color);
+}
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.chart-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+/* Stacked bars: at most 24px thick (20px), a 2px card-coloured gap between segments instead of a
+   border, square at the baseline and a 4px rounded data end. Text stays in ink tokens. */
+.chart-bars {
+  display: grid;
+  gap: 0.75rem;
+}
+.chart-bar-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 10rem) 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+.chart-bar-label {
+  overflow-wrap: anywhere;
+  color: var(--bs-body-color);
+}
+.chart-bar-track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.chart-bar {
+  display: flex;
+  gap: 2px;
+  height: 20px;
+  min-width: 4px;
+}
+.chart-seg {
+  min-width: 2px;
+  height: 100%;
+}
+.chart-bar > .chart-seg:last-child {
+  border-radius: 0 4px 4px 0;
+}
+.chart-bar-total {
+  font-size: 0.8125rem;
+  color: var(--bs-secondary-color);
+  white-space: nowrap;
+}
+
+/* Headcount line: one petrol series, 2px line, a ~10% wash under it, an 8px end dot with a 2px
+   card ring, hairline solid gridlines. Axis text is HTML so it never shrinks with the SVG. */
+.chart-line {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  grid-template-rows: 200px auto;
+  column-gap: 0.5rem;
+}
+.chart-y,
+.chart-plot,
+.chart-x {
+  position: relative;
+}
+.chart-y span {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+}
+.chart-plot {
+  margin: 0 12px;
+}
+.chart-plot svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.chart-grid {
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  border-top: 1px solid var(--chart-grid);
+}
+.chart-area {
+  fill: var(--chart-line);
+  fill-opacity: 0.1;
+}
+.chart-path {
+  fill: none;
+  stroke: var(--chart-line);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.chart-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--chart-line);
+  box-shadow: 0 0 0 2px var(--bs-card-bg, #fff);
+  transform: translate(-50%, -50%);
+}
+.chart-end-label {
+  position: absolute;
+  transform: translate(-50%, -170%);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--bs-body-color);
+}
+/* Each month's hover/focus target is a full-height column, much larger than the dot. */
+.chart-hit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  transform: translateX(-50%);
+  cursor: default;
+}
+.chart-hit:hover,
+.chart-hit:focus-visible {
+  background: linear-gradient(var(--chart-grid), var(--chart-grid)) center / 1px 100% no-repeat;
+  outline: none;
+}
+.chart-x {
+  grid-column: 2;
+  height: 1.5rem;
+  margin: 0.375rem 12px 0;
+}
+.chart-x span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+  white-space: nowrap;
+}
+/* Narrow screens: every other month label, so twelve labels never collide. */
+@media (max-width: 575.98px) {
+  .chart-x span:nth-child(even) {
+    display: none;
+  }
+}
+
+.chart-seg:focus-visible {
+  outline: 2px solid var(--bs-body-color);
+  outline-offset: 2px;
+}
+.caderly-chart-tip {
+  position: absolute;
+  z-index: 1080;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-body-color);
+  color: #fff;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--bs-box-shadow);
+}

@@ -385,10 +385,16 @@ Bootstrap the project skeleton, CI, and local dev experience so the first featur
 **Frontend:**
 - Admin → Reports page with 3 report cards.
 - Each opens a form (filter, date range) + preview table + Download CSV button.
+- Charts above the tables (PRD FR-10.2, FR-10.3, §16.1): Leave Utilization as a stacked bar per
+  department (one segment per leave type); Headcount as a monthly line of active employees.
+  Server-rendered HTML/SVG from `web.ReportCharts`, no chart library (UI Guidelines "Charts").
+  Added after the CSV-only first cut of this sub-phase.
 
-**Testing:** Report totals correct with seeded data.
+**Testing:** Report totals correct with seeded data. Chart geometry, colour-slot stability under
+filters and the empty state are covered by `ReportChartsTest` and `ReportChartsRenderingTest`.
 
-**DoD:** Admin generates each report, downloads CSV, opens in Excel.
+**DoD:** Admin generates each report, sees its chart (utilization and headcount), downloads CSV,
+opens in Excel.
 
 **Complexity:** S. **Depends on:** 1.6.
 

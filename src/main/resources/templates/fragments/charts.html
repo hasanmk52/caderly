@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Report charts (PRD FR-10.2, FR-10.3; UI Guidelines "Charts"). Geometry comes precomputed
+       from web.ReportCharts as percentages; these fragments only place elements. The table under
+       each chart stays the full data view, so the chart is role="img" with a one-line summary.
+       Hover/focus tooltips are caderly.js's [data-chart-tip] handler. Thymeleaf evaluates th:data-*
+       in restricted mode (no bean calls), so tooltip text is built in th:with first. */-->
+
+<div th:fragment="utilization(chart)" class="card mb-4 caderly-chart">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+      <h2 class="h6 mb-0" th:text="#{admin.reports.chart.utilization.title}">Days used by department</h2>
+      <!--/* Identity is never colour alone: a legend whenever there are two or more series. */-->
+      <ul class="chart-legend" th:if="${#lists.size(chart.legend()) > 1}">
+        <li th:each="item : ${chart.legend()}">
+          <span class="chart-swatch" th:classappend="'chart-s' + ${item.slot()}" aria-hidden="true"></span>
+          <span th:text="${item.leaveType()}">Vacation</span>
+        </li>
+      </ul>
+    </div>
+    <div class="chart-bars" role="img"
+         th:with="topDepartment=${chart.bars()[0].department()}, topDays=${@fmt.days(chart.bars()[0].total())}"
+         th:aria-label="#{admin.reports.chart.utilization.aria(${topDepartment}, ${topDays})}">
+      <div class="chart-bar-row" th:each="bar : ${chart.bars()}">
+        <span class="chart-bar-label" th:text="${bar.department()}">Engineering</span>
+        <span class="chart-bar-track">
+          <span class="chart-bar" th:style="'width: calc((100% - 3rem) * ' + ${bar.totalPct() / 100.0} + ')'">
+            <span th:each="seg : ${bar.segments()}" class="chart-seg" th:classappend="'chart-s' + ${seg.slot()}"
+                  th:style="'flex-grow: ' + ${seg.days()}" tabindex="0"
+                  th:with="days=${@fmt.days(seg.days())} + ' ' + #{admin.reports.chart.days}"
+                  th:data-chart-tip="${bar.department() + ' · ' + seg.leaveType() + ' · ' + days}"
+                  th:aria-label="${bar.department() + ', ' + seg.leaveType() + ': ' + days}"></span>
+          </span>
+          <span class="chart-bar-total font-figure" th:text="${@fmt.days(bar.total())}">12</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:fragment="headcount(chart)" class="card mb-4 caderly-chart">
+  <div class="card-body">
+    <h2 class="h6 mb-3" th:text="#{admin.reports.chart.headcount.title}">Active employees by month</h2>
+    <div class="chart-line" role="img"
+         th:with="first=${chart.points()[0]}, last=${chart.points()[#lists.size(chart.points()) - 1]},
+                  firstMonth=${#temporals.format(first.month(), 'MMMM yyyy')}, lastMonth=${#temporals.format(last.month(), 'MMMM yyyy')}"
+         th:aria-label="#{admin.reports.chart.headcount.aria(${first.count()}, ${firstMonth}, ${last.count()}, ${lastMonth})}">
+      <div class="chart-y" aria-hidden="true">
+        <span th:each="tick : ${chart.ticks()}" class="font-figure" th:style="'top: ' + ${tick.y()} + '%'" th:text="${tick.value()}">0</span>
+      </div>
+      <div class="chart-plot">
+        <span th:each="tick : ${chart.ticks()}" class="chart-grid" th:style="'top: ' + ${tick.y()} + '%'" aria-hidden="true"></span>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="chart-area" th:attr="d=${chart.areaPath()}"></path>
+          <!--/* non-scaling-stroke keeps the line 2px while the viewBox stretches to any width. */-->
+          <path class="chart-path" th:attr="d=${chart.linePath()}" vector-effect="non-scaling-stroke"></path>
+        </svg>
+        <span class="chart-dot" aria-hidden="true" th:style="'left: ' + ${last.x()} + '%; top: ' + ${last.y()} + '%'"></span>
+        <span class="chart-end-label font-figure" aria-hidden="true" th:style="'left: ' + ${last.x()} + '%; top: ' + ${last.y()} + '%'" th:text="${last.count()}">9</span>
+        <span th:each="point : ${chart.points()}" class="chart-hit" tabindex="0"
+              th:style="'left: ' + ${point.x()} + '%'"
+              th:with="tip=${#temporals.format(point.month(), 'MMM yyyy')} + ' · ' + ${point.count()} + ' ' + #{admin.reports.chart.active},
+                       spoken=${#temporals.format(point.month(), 'MMMM yyyy')} + ': ' + ${point.count()} + ' ' + #{admin.reports.chart.active}"
+              th:data-chart-tip="${tip}" th:aria-label="${spoken}"></span>
+      </div>
+      <div class="chart-x" aria-hidden="true">
+        <span th:each="point : ${chart.points()}" th:style="'left: ' + ${point.x()} + '%'"
+              th:text="${point.showYear()} ? ${#temporals.format(point.month(), 'MMM yyyy')} : ${#temporals.format(point.month(), 'MMM')}">Jan</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

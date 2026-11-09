@@ -222,6 +222,22 @@ Existing code in `people/list.html`, `people/profile.html`, `admin/users.html`, 
 
 ---
 
+### Charts (reports)
+- **No chart library.** Charts are server-rendered from view models in `web.ReportCharts`: HTML
+  bars, and an SVG line whose axis text is HTML so it never shrinks on phones. Markup lives in
+  `fragments/charts.html`; tooltips are `caderly.js`'s `[data-chart-tip]` handler (hover and focus).
+- **Categorical palette** (`--chart-1..6` in `caderly.css`): `#0C86AB`, `#E8703A`, `#6A5AD0`,
+  `#24A37A`, `#B38A0E`, `#DB6A97`, validated on the white card (colour-blind separation, normal-vision
+  floor, contrast). A series keeps its slot under any filter: slots follow the tenant's full,
+  name-ordered list, and a 7th series or more folds into grey "Other" (`--chart-0`). Never reuse
+  the status colours for a series, and re-validate before changing a hex.
+- **A single series** (headcount) is brand petrol: 2px line, ~10% area wash, ringed end dot.
+- **Marks and chrome:** bars at most 24px thick with a 4px rounded end and a 2px gap between stacked
+  segments; hairline solid gridlines; text in ink tokens, figures in Plex Mono; a legend whenever
+  there are two or more series; values only at bar ends and the line's end.
+- **Accessibility:** the chart is `role="img"` with a one-sentence summary; the table below it
+  stays the full data view; every mark is keyboard-focusable with the same tooltip text.
+
 ## 7. Data patterns
 
 ### 7.1 Empty states
