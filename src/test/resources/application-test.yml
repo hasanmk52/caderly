@@ -26,6 +26,9 @@ caderly:
   signup:
     # Open in tests; SignupServiceTest flips it per case to cover the closed state.
     enabled: true
+    # The test database is shared across classes, so the production cap of 20 would trip once
+    # enough of them have signed up; the cap itself is covered by SignupServiceDailyLimitTest.
+    daily-limit: 100000
     cleanup-job:
       # Tests call SignupService.purgeExpired() directly at a known moment.
       enabled: false

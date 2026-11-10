@@ -82,6 +82,13 @@ public interface TenantFacade {
     boolean isSlugTaken(String slug);
 
     /**
+     * How many self-serve workspaces (those carrying a seat limit) were created after {@code
+     * since}, soft-deleted ones included. Backs the daily sign-up cap, which counts what was
+     * created, not what is still active.
+     */
+    long countSelfServeCreatedSince(Instant since);
+
+    /**
      * The current tenant's maximum number of non-terminated employees, or empty for no limit
      * (ADR 0022 decision F).
      */

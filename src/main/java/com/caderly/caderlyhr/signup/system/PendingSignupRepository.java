@@ -21,6 +21,12 @@ public interface PendingSignupRepository extends JpaRepository<PendingSignup, UU
     /** A live hold: the address is free again once its link has expired, purged or not. */
     boolean existsBySlugAndExpiresAtAfter(String slug, Instant now);
 
+    /**
+     * Holds whose link is still live. A link lives exactly as long as the daily window, so this is
+     * also "sign-ups started in the window and not yet confirmed".
+     */
+    long countByExpiresAtAfter(Instant now);
+
     /** Releases every hold whose link has expired, including any on the address being requested. */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from PendingSignup p where p.expiresAt <= :now")

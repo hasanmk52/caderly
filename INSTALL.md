@@ -130,3 +130,5 @@ stack.
 - Logs: `docker compose logs app` (structured JSON, with request, tenant and actor IDs).
 - Certificates renew automatically; keep the `caddy_data` volume, because it holds them.
 - Self-serve sign-up stays off until `CADERLY_SIGNUP_ENABLED=true`.
+- `CADERLY_SIGNUP_DAILY_LIMIT` (default 20) caps new sign-ups across all visitors in any 24 hours;
+  past it the form says to try again tomorrow. Raise it in `.env` and `docker compose up -d`.

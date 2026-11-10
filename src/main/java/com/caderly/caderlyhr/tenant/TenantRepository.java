@@ -1,5 +1,6 @@
 package com.caderly.caderlyhr.tenant;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,4 +20,7 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
      * once its tenant is soft-deleted.
      */
     boolean existsBySlug(String slug);
+
+    /** Self-serve workspaces are the only ones with a seat limit (ADR 0022 decision F). */
+    long countBySeatLimitIsNotNullAndCreatedAtAfter(Instant since);
 }

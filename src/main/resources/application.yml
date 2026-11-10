@@ -138,6 +138,9 @@ caderly:
     enabled: ${CADERLY_SIGNUP_ENABLED:false}
     # Employees a self-serve workspace may hold (tenant.seat_limit, ADR 0022 decision F).
     seat-limit: 50
+    # Most self-serve sign-ups accepted in any 24 hours, across all visitors. Caps abuse and the
+    # confirmation mail each one sends; the per-IP and per-email limits in RateLimitFilter stay.
+    daily-limit: ${CADERLY_SIGNUP_DAILY_LIMIT:20}
     cleanup-job:
       enabled: true
       # Hourly: expired holds release their address within the hour.

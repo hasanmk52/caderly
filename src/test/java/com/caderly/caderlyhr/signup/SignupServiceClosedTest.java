@@ -31,6 +31,7 @@ class SignupServiceClosedTest {
                         Clock.systemUTC(),
                         false,
                         50,
+                        20,
                         "caderly.app");
 
         assertThat(closed.isOpen()).isFalse();

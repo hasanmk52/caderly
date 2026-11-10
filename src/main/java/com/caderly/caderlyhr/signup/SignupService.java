@@ -56,6 +56,7 @@ public class SignupService {
     private final Clock clock;
     private final boolean enabled;
     private final int seatLimit;
+    private final int dailyLimit;
     private final String baseDomain;
 
     SignupService(
@@ -67,6 +68,7 @@ public class SignupService {
             Clock clock,
             @Value("${caderly.signup.enabled:false}") boolean enabled,
             @Value("${caderly.signup.seat-limit:50}") int seatLimit,
+            @Value("${caderly.signup.daily-limit:20}") int dailyLimit,
             @Value("${caderly.base-domain:localhost}") String baseDomain) {
         this.pendings = pendings;
         this.tenants = tenants;
@@ -78,6 +80,7 @@ public class SignupService {
         this.clock = clock;
         this.enabled = enabled;
         this.seatLimit = seatLimit;
+        this.dailyLimit = dailyLimit;
         this.baseDomain = baseDomain;
     }
 
@@ -121,7 +124,8 @@ public class SignupService {
      *
      * @param siteBaseUrl the public site's origin, e.g. {@code https://caderly.app}; the link
      *     must come back there, not to a tenant host that doesn't exist yet
-     * @throws ValidationException {@code SIGNUP_CLOSED} or an {@code SIGNUP_ADDRESS_*} code
+     * @throws ValidationException {@code SIGNUP_CLOSED}, {@code SIGNUP_DAILY_LIMIT} or an {@code
+     *     SIGNUP_ADDRESS_*} code
      * @throws ConflictException {@code SIGNUP_ADDRESS_TAKEN}
      */
     public void start(SignupRequest request, String siteBaseUrl) {
@@ -150,6 +154,13 @@ public class SignupService {
                                         if (tenants.isSlugTaken(slug) || pendings.existsBySlug(slug)) {
                                             throw addressTaken();
                                         }
+                                        // After deleteByAdminEmail, so a repeat request from the same
+                                        // email replaces its hold instead of counting twice. Throwing
+                                        // rolls that delete back, so the earlier link keeps working.
+                                        if (signupsInWindow(now) >= dailyLimit) {
+                                            throw new ValidationException(
+                                                    "SIGNUP_DAILY_LIMIT", "Sign-ups are at today's limit");
+                                        }
                                         pendings.saveAndFlush(
                                                 new PendingSignup(
                                                         slug,
@@ -177,6 +188,15 @@ public class SignupService {
         }
         // Never the token, never the link: both are live credentials until used.
         log.info("Sign-up started for {}", slug);
+    }
+
+    /**
+     * Sign-ups in the last {@link #LINK_TTL}: unconfirmed holds still live, plus workspaces made
+     * in the window. A confirmation moves a sign-up from the first count to the second (the hold
+     * is deleted, the tenant is created), so nothing is counted twice or dropped.
+     */
+    private long signupsInWindow(Instant now) {
+        return pendings.countByExpiresAtAfter(now) + tenants.countSelfServeCreatedSince(now.minus(LINK_TTL));
     }
 
     /**

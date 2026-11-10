@@ -13,6 +13,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.HexFormat;
 import java.util.List;
@@ -262,6 +263,13 @@ public class TenantService implements TenantFacade {
     @Override
     public boolean isSlugTaken(String slug) {
         return TenantContext.runAsSystem("check slug availability " + slug, () -> repository.existsBySlug(slug));
+    }
+
+    @Override
+    public long countSelfServeCreatedSince(Instant since) {
+        return TenantContext.runAsSystem(
+                "count self-serve workspaces created since " + since,
+                () -> repository.countBySeatLimitIsNotNullAndCreatedAtAfter(since));
     }
 
     @Override
